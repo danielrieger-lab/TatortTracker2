@@ -58,11 +58,43 @@ document.querySelector("#finder-form").addEventListener("submit", async (event) 
   finderStatus.textContent = "Suche ...";
   try {
     const data = await request(`/users/by-code/${code}`);
-    finderStatus.textContent = data.user ? `Gefunden: ${data.user.username}` : "Kein Benutzer gefunden.";
+    const result = document.querySelector("#finder-result");
+    result.replaceChildren();
+    result.hidden = !data.user;
+    if (!data.user) {
+      finderStatus.textContent = "Kein Benutzer gefunden.";
+      return;
+    }
+    finderStatus.textContent = "Gefunden.";
+    const name = document.createElement("strong");
+    name.textContent = data.user.username;
+    const followButton = document.createElement("button");
+    followButton.className = "secondary-button";
+    followButton.type = "button";
+    followButton.textContent = "Folgen";
+    followButton.addEventListener("click", () => updateSocial("/follows", data.user.id, followButton, "Folgen", "Folge ich"));
+    const blockButton = document.createElement("button");
+    blockButton.className = "quiet-button";
+    blockButton.type = "button";
+    blockButton.textContent = "Blockieren";
+    blockButton.addEventListener("click", () => updateSocial("/blocks", data.user.id, blockButton, "Blockieren", "Blockiert", "POST"));
+    result.append(name, followButton, blockButton);
   } catch (error) {
     finderStatus.textContent = error.message;
   }
 });
+
+async function updateSocial(path, userId, button, idleText, activeText, method = "POST") {
+  button.disabled = true;
+  try {
+    await request(path, { method, body: JSON.stringify({ userId }) });
+    button.textContent = activeText;
+  } catch (error) {
+    document.querySelector("#finder-status").textContent = error.message;
+    button.disabled = false;
+    button.textContent = idleText;
+  }
+}
 
 document.querySelector("#logout-button").addEventListener("click", async () => {
   await request("/auth/logout", { method: "POST" });

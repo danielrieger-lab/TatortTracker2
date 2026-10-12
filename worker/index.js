@@ -46,6 +46,12 @@ export default {
       if (url.pathname === "/api/comments" && request.method === "POST") {
         return addComment(request, env, headers);
       }
+      if (url.pathname === "/api/follows" && (request.method === "POST" || request.method === "DELETE")) {
+        return changeFollow(request, env, headers);
+      }
+      if (url.pathname === "/api/blocks" && (request.method === "POST" || request.method === "DELETE")) {
+        return changeBlock(request, env, headers);
+      }
       return json({ error: "Not found" }, 404, headers);
     } catch (error) {
       console.error(error);
@@ -151,6 +157,43 @@ async function addComment(request, env, headers) {
   await env.DB.prepare("INSERT INTO comments (id, user_id, episode_id, body) VALUES (?1, ?2, ?3, ?4)")
     .bind(id, user.id, episodeId, comment).run();
   return json({ comment: { id, username: user.username, body: comment } }, 201, headers);
+}
+
+async function changeFollow(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const targetUserId = typeof body.userId === "string" ? body.userId : "";
+  if (!targetUserId || targetUserId === user.id) return json({ error: "Choose another user." }, 400, headers);
+  const target = await env.DB.prepare("SELECT id FROM users WHERE id = ?1").bind(targetUserId).first();
+  if (!target) return json({ error: "User not found." }, 404, headers);
+  const blocked = await env.DB.prepare("SELECT 1 FROM blocks WHERE (blocker_id = ?1 AND blocked_id = ?2) OR (blocker_id = ?2 AND blocked_id = ?1)").bind(user.id, targetUserId).first();
+  if (blocked) return json({ error: "This user is blocked." }, 403, headers);
+  if (request.method === "POST") {
+    await env.DB.prepare("INSERT OR IGNORE INTO follows (follower_id, following_id) VALUES (?1, ?2)").bind(user.id, targetUserId).run();
+    return json({ following: true }, 200, headers);
+  }
+  await env.DB.prepare("DELETE FROM follows WHERE follower_id = ?1 AND following_id = ?2").bind(user.id, targetUserId).run();
+  return json({ following: false }, 200, headers);
+}
+
+async function changeBlock(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const targetUserId = typeof body.userId === "string" ? body.userId : "";
+  if (!targetUserId || targetUserId === user.id) return json({ error: "Choose another user." }, 400, headers);
+  const target = await env.DB.prepare("SELECT id FROM users WHERE id = ?1").bind(targetUserId).first();
+  if (!target) return json({ error: "User not found." }, 404, headers);
+  if (request.method === "POST") {
+    await env.DB.batch([
+      env.DB.prepare("INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?1, ?2)").bind(user.id, targetUserId),
+      env.DB.prepare("DELETE FROM follows WHERE (follower_id = ?1 AND following_id = ?2) OR (follower_id = ?2 AND following_id = ?1)").bind(user.id, targetUserId),
+    ]);
+    return json({ blocked: true }, 200, headers);
+  }
+  await env.DB.prepare("DELETE FROM blocks WHERE blocker_id = ?1 AND blocked_id = ?2").bind(user.id, targetUserId).run();
+  return json({ blocked: false }, 200, headers);
 }
 
 async function authenticatedUser(request, env) {
