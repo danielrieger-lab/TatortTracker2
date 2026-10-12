@@ -160,12 +160,21 @@ async function loadEpisodes() {
   }
 }
 
-function saveReviewDraft() {
-  localStorage.setItem(REVIEW_DRAFT_KEY, JSON.stringify({
+function reviewValues() {
+  return {
     episodeId: document.querySelector("#episode-id").value,
-    score: scoreInput.value,
-    comment: document.querySelector("#comment").value,
-  }));
+    score: Number(scoreInput.value),
+    ...Object.fromEntries([...document.querySelectorAll(".detail-rating")].map((input) => [input.dataset.field, Number(input.value)])),
+    watchedDate: document.querySelector("#watched-date").value,
+    watchCount: Number(document.querySelector("#watch-count").value || 1),
+    favoriteCharacter: document.querySelector("#favorite-character").value,
+    leastFavoriteCharacter: document.querySelector("#least-favorite-character").value,
+    notes: document.querySelector("#notes").value,
+  };
+}
+
+function saveReviewDraft() {
+  localStorage.setItem(REVIEW_DRAFT_KEY, JSON.stringify({ ...reviewValues(), comment: document.querySelector("#comment").value }));
 }
 
 function restoreReviewDraft() {
@@ -175,6 +184,14 @@ function restoreReviewDraft() {
   scoreInput.value = draft.score || "5";
   document.querySelector("#score-value").textContent = scoreInput.value;
   document.querySelector("#comment").value = draft.comment || "";
+  for (const [field, value] of Object.entries(draft)) {
+    const input = document.querySelector(`[data-field="${field}"]`);
+    if (input) input.value = value;
+  }
+  for (const id of ["watched-date", "watch-count", "favorite-character", "least-favorite-character", "notes"]) {
+    const key = id.replaceAll("-", "");
+    if (draft[key] !== undefined) document.querySelector(`#${id}`).value = draft[key];
+  }
 }
 
 document.querySelector("#refresh-episodes").addEventListener("click", loadEpisodes);
@@ -279,7 +296,7 @@ document.querySelector("#review-form").addEventListener("submit", async (event) 
   const episodeId = document.querySelector("#episode-id").value;
   status.textContent = "Wird gespeichert ...";
   try {
-    await request("/ratings", { method: "POST", body: JSON.stringify({ episodeId, score: Number(scoreInput.value) }) });
+    await request("/ratings", { method: "POST", body: JSON.stringify(reviewValues()) });
     const comment = document.querySelector("#comment").value.trim();
     if (comment) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId, body: comment }) });
     await loadEpisodeActivity(episodeId);
