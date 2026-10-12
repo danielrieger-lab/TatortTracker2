@@ -97,7 +97,12 @@ function renderEpisode(episode) {
   button.type = "button";
   button.textContent = "Bewerten";
   button.addEventListener("click", () => selectEpisode(episode));
-  item.append(title, meta, synopsis, button);
+  const details = document.createElement("button");
+  details.className = "quiet-button";
+  details.type = "button";
+  details.textContent = "Details";
+  details.addEventListener("click", () => openEpisodeModal(episode));
+  item.append(title, meta, synopsis, button, details);
   return item;
 }
 
@@ -110,8 +115,26 @@ function normalizeCatalogEpisode(episode) {
     airDate: episode.airDate || episode.date || "",
     location: episode.location || "",
     synopsis: episode.synopsis || episode.besonderheiten || "Keine Beschreibung vorhanden.",
+    sender: episode.sender || "",
+    roles: Array.isArray(episode.roles) ? episode.roles : [],
   };
 }
+
+function openEpisodeModal(episode) {
+  document.querySelector("#modal-title").textContent = episode.title;
+  const body = document.querySelector("#modal-body");
+  body.replaceChildren();
+  const details = [`Folge ${episode.id}`, episode.sender, episode.airDate, episode.investigator || episode.team, episode.location].filter(Boolean);
+  const meta = document.createElement("p"); meta.textContent = details.join(" | "); body.append(meta);
+  const synopsis = document.createElement("p"); synopsis.textContent = episode.synopsis; body.append(synopsis);
+  if (episode.roles.length) {
+    const heading = document.createElement("h3"); heading.textContent = "Besetzung"; body.append(heading);
+    const roles = document.createElement("ul"); roles.replaceChildren(...episode.roles.slice(0, 40).map((role) => { const item = document.createElement("li"); item.textContent = role.replace(":", " - "); return item; })); body.append(roles);
+  }
+  document.querySelector("#episode-modal").hidden = false;
+}
+
+document.querySelectorAll("[data-close-modal]").forEach((element) => element.addEventListener("click", () => { document.querySelector("#episode-modal").hidden = true; }));
 
 function renderFilteredEpisodes() {
   const query = document.querySelector("#episode-search").value.trim().toLocaleLowerCase("de-DE");

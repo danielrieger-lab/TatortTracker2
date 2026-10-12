@@ -96,6 +96,15 @@ input:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
 .episode-item h3 { margin: 0; font-size: 1.15rem; }
 .episode-item p { margin: 7px 0 0; font: 0.9rem/1.4 sans-serif; }
 .episode-item .secondary-button { margin-top: 13px; }
+.episode-item .quiet-button { margin-left: 10px; }
+.episode-modal { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px; }
+.episode-modal[hidden] { display: none; }
+.episode-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.78); }
+.episode-modal-dialog { position: relative; width: min(100%, 680px); max-height: 85vh; overflow: auto; padding: 26px; border: 1px solid rgba(255,255,255,0.28); border-radius: 14px; background: #090909; }
+.modal-close { position: absolute; top: 18px; right: 18px; }
+.modal-body { color: #d8dfd4; font: 0.95rem/1.5 sans-serif; }
+.modal-body h3 { color: #ffffff; font-family: "Futura Black", sans-serif; }
+.modal-body li { margin-bottom: 4px; }
 .review-panel textarea { width: 100%; resize: vertical; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }
 .review-panel textarea:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
 .report-panel textarea, .report-panel select { width: 100%; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }

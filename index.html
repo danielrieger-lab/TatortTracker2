@@ -131,6 +131,15 @@
         <ul id="report-list" class="report-list"></ul>
       </section>
     </main>
+    <div id="episode-modal" class="episode-modal" hidden>
+      <div class="episode-modal-backdrop" data-close-modal></div>
+      <section class="episode-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="quiet-button modal-close" type="button" data-close-modal aria-label="Schließen">Schließen</button>
+        <p class="eyebrow">Folgendetails</p>
+        <h2 id="modal-title"></h2>
+        <div id="modal-body" class="modal-body"></div>
+      </section>
+    </div>
     <script type="module" src="src/app.js"></script>
   </body>
 </html>
