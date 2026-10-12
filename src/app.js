@@ -85,24 +85,21 @@ document.querySelector("#refresh-reports").addEventListener("click", loadReports
 
 function renderEpisode(episode) {
   const item = document.createElement("li");
-  item.className = "episode-item";
-  const title = document.createElement("h3");
+  item.className = "episode-card";
+  item.setAttribute("role", "button");
+  item.setAttribute("tabindex", "0");
+  const line = document.createElement("p");
+  line.className = "episode-line";
+  line.append(document.createTextNode(`${episode.id} - `));
+  const title = document.createElement("strong");
   title.textContent = episode.title;
-  const meta = document.createElement("p");
-  meta.textContent = `${episode.team || episode.investigator || "Ermittler offen"} | ${episode.airDate || episode.date || "Datum offen"}${episode.location ? ` | ${episode.location}` : ""}`;
-  const synopsis = document.createElement("p");
-  synopsis.textContent = episode.synopsis;
-  const button = document.createElement("button");
-  button.className = "secondary-button";
-  button.type = "button";
-  button.textContent = "Bewerten";
-  button.addEventListener("click", () => selectEpisode(episode));
-  const details = document.createElement("button");
-  details.className = "quiet-button";
-  details.type = "button";
-  details.textContent = "Details";
-  details.addEventListener("click", () => openEpisodeModal(episode));
-  item.append(title, meta, synopsis, button, details);
+  line.append(title);
+  if (episode.location) line.append(document.createTextNode(` (${episode.location})`));
+  item.append(line);
+  item.addEventListener("click", () => openEpisodeModal(episode));
+  item.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEpisodeModal(episode); }
+  });
   return item;
 }
 
