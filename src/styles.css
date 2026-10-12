@@ -1,6 +1,6 @@
 @font-face { font-family: "Futura Black"; src: url("../assets/fonts/futura-bold-webfont.woff2") format("woff2"); font-weight: 900; font-display: swap; }
 @font-face { font-family: "Futura Light"; src: url("../assets/fonts/futurabt-light-webfont.woff2") format("woff2"); font-weight: 300; font-display: swap; }
-:root { color: #ffffff; background: #000000; font-family: "Futura Light", "Futura", "Trebuchet MS", sans-serif; }
+:root { --accent: #35185a; color: #ffffff; background: #000000; font-family: "Futura Light", "Futura", "Trebuchet MS", sans-serif; }
 
 * { box-sizing: border-box; }
 
@@ -101,17 +101,20 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .episode-modal { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px; }
 .episode-modal[hidden] { display: none; }
 .episode-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.78); }
-.episode-modal-dialog { position: relative; width: min(100%, 680px); max-height: 85vh; overflow: auto; padding: 26px; border: 1px solid rgba(255,255,255,0.28); border-radius: 14px; background: #090909; }
+.episode-modal-dialog { position: relative; width: min(920px, calc(100% - 24px)); max-height: min(82vh, 900px); overflow: hidden; margin: 8vh auto 0; padding: 18px; border: 1px solid rgba(255,255,255,0.18); border-radius: 18px; background: rgba(53, 24, 90, 0.98); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 .modal-close { position: absolute; top: 18px; right: 18px; }
-.modal-body { color: #d8dfd4; font: 0.95rem/1.5 sans-serif; }
+.modal-body { max-height: calc(min(82vh, 900px) - 80px); overflow: auto; color: #d8dfd4; font: 0.95rem/1.5 sans-serif; }
 .modal-body h3 { color: #ffffff; font-family: "Futura Black", sans-serif; }
 .modal-body li { margin-bottom: 4px; }
-.modal-rating-form { margin: 24px 0; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.18); border-bottom: 1px solid rgba(255,255,255,0.18); }
-.modal-rating-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-family: "Futura Light", sans-serif; }
-.modal-stars { display: inline-flex; gap: 3px; }
-.modal-star { border: 0; padding: 0; color: rgba(255,255,255,0.28); background: transparent; cursor: pointer; font-size: 1.25rem; }
-.modal-star.is-selected { color: #35185a; }
-.modal-rating-form input, .modal-rating-form textarea { margin-top: 10px; }
+.rating-area { margin: 16px 0; border-top: 1px solid rgba(255,255,255,0.22); border-bottom: 1px solid rgba(255,255,255,0.22); padding: 12px 0; display: grid; gap: 8px; }
+.rating-area .rating-row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 4px 0; }
+.rating-area .rating-label { font-family: "Futura Light", "Futura", sans-serif; }
+.rating-area .general-rating .rating-label { font-family: "Futura Black", "Futura", sans-serif; }
+.stars { display: inline-flex; align-items: center; gap: 4px; width: 126px; justify-content: flex-start; }
+.rating-icon { width: 20px; height: 20px; display: inline-block; background-color: rgba(255,255,255,0.14); -webkit-mask-image: var(--icon-url); mask-image: var(--icon-url); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; opacity: 0.75; }
+.rating-icon.filled, .star-button.filled .rating-icon { background-color: var(--accent); transform: scale(1.1); opacity: 1; }
+.star-button { border: 0; background: transparent; width: 22px; height: 22px; padding: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.rating-area .top-field { display: grid; gap: 6px; }
 .review-panel textarea { width: 100%; resize: vertical; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }
 .review-panel textarea:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .report-panel textarea, .report-panel select { width: 100%; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }

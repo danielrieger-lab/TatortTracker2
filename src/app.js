@@ -130,29 +130,30 @@ function openEpisodeModal(episode) {
   const meta = document.createElement("p"); meta.textContent = details.join(" | "); body.append(meta);
   const synopsis = document.createElement("p"); synopsis.textContent = episode.synopsis; body.append(synopsis);
   const form = document.createElement("form");
-  form.className = "modal-rating-form";
-  const ratingFields = [["fallQuality", "Fallqualität"], ["teamRating", "Team"], ["directionRating", "Inszenierung"], ["tension", "Spannung"], ["scary", "Gruseligkeit"]];
-  for (const [field, label] of ratingFields) {
-    const row = document.createElement("div"); row.className = "modal-rating-row";
-    const text = document.createElement("span"); text.textContent = label;
-    const stars = document.createElement("span"); stars.className = "modal-stars";
+  form.className = "rating-area";
+  const ratingFields = [["score", "Gesamtbewertung", "icon.svg"], ["fallQuality", "Fallqualität", "fallqualität.svg"], ["teamRating", "Team", "team.svg"], ["directionRating", "Inszenierung", "inszenierung.svg"], ["tension", "Spannung", "spannung.svg"], ["scary", "gruselig (Kissenfaktor)", "gruselig.svg"]];
+  for (const [field, label, iconFile] of ratingFields) {
+    const row = document.createElement("div"); row.className = field === "score" ? "rating-row general-rating" : "rating-row";
+    const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label;
+    const stars = document.createElement("span"); stars.className = "stars interactive";
     for (let value = 1; value <= 5; value += 1) {
-      const star = document.createElement("button"); star.type = "button"; star.className = "modal-star"; star.textContent = "★"; star.dataset.value = value;
-      star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => item.classList.toggle("is-selected", index < value)); });
+      const star = document.createElement("button"); star.type = "button"; star.className = "star-button"; star.setAttribute("aria-label", `${value} Sterne`); star.dataset.value = value;
+      const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", `url(\"assets/icons/${encodeURI(iconFile)}\")`); star.append(icon);
+      star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => { item.classList.toggle("filled", index < value); item.firstChild.classList.toggle("filled", index < value); }); });
       stars.append(star);
     }
     stars.dataset.field = field; stars.dataset.value = "0";
     row.append(text, stars); form.append(row);
   }
-  const fields = [["watchedDate", "Zuletzt gesehen", "date"], ["watchCount", "Anzahl gesehen", "number"], ["favoriteCharacter", "Lieblingsfigur", "text"], ["leastFavoriteCharacter", "Wenigste Lieblingsfigur", "text"]];
-  for (const [id, label, type] of fields) { const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = type; input.placeholder = label; input.min = type === "number" ? "1" : ""; input.value = type === "number" ? "1" : ""; form.append(input); }
-  const notes = document.createElement("textarea"); notes.id = "modal-notes"; notes.name = "notes"; notes.placeholder = "Notizen"; notes.rows = 3; form.append(notes);
-  const comment = document.createElement("textarea"); comment.id = "modal-comment"; comment.placeholder = "Kommentar"; comment.rows = 3; form.append(comment);
+  const fields = [["watchedDate", "zuerst gesehen", "date"], ["watchCount", "Anzahl gesehen", "number"], ["favoriteCharacter", "most loved Charakter", "text"], ["leastFavoriteCharacter", "most hated Charakter", "text"]];
+  for (const [id, label, type] of fields) { const row = document.createElement("div"); row.className = "rating-row top-field"; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = type; input.placeholder = label; input.min = type === "number" ? "1" : ""; input.value = type === "number" ? "1" : ""; row.append(Object.assign(document.createElement("span"), { className: "rating-label", textContent: label }), input); form.append(row); }
+  const notes = document.createElement("textarea"); notes.id = "modal-notes"; notes.name = "notes"; notes.placeholder = "Besonderheiten / Notizen"; notes.rows = 3; notes.className = "besonderheiten-text"; form.append(notes);
+  const comment = document.createElement("textarea"); comment.id = "modal-comment"; comment.placeholder = "Kommentar eingeben"; comment.rows = 3; comment.className = "kommentar-input"; form.append(comment);
   const save = document.createElement("button"); save.className = "primary-button"; save.type = "submit"; save.textContent = "Bewertung speichern"; form.append(save);
   const status = document.createElement("p"); status.className = "form-status"; status.setAttribute("role", "status"); form.append(status);
   form.addEventListener("submit", async (event) => {
     event.preventDefault(); status.textContent = "Wird gespeichert ...";
-    const values = Object.fromEntries([...form.querySelectorAll(".modal-stars")].map((stars) => [stars.dataset.field, Number(stars.dataset.value || 0) * 2 || 5]));
+    const values = Object.fromEntries([...form.querySelectorAll(".stars")].map((stars) => [stars.dataset.field, Number(stars.dataset.value || 0) * 2 || 5]));
     const payload = { episodeId: episode.id, score: values.fallQuality || 5, ...values, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: notes.value };
     try { await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); status.textContent = "Bewertung gespeichert."; } catch (error) { status.textContent = error.message; }
   });
