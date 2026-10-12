@@ -1,0 +1,2 @@
+# Copy to .dev.vars for local Worker development. Do not commit secrets.
+FRONTEND_ORIGIN=http://localhost:4173

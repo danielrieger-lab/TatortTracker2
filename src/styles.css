@@ -51,5 +51,35 @@ h1 {
   background: rgba(244, 241, 232, 0.08);
 }
 
+.panel + .panel { margin-top: 24px; }
 .panel h2 { margin: 0; font-size: 1.45rem; }
 .panel p { margin: 10px 0 0; color: #d8dfd4; }
+.panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.panel-heading .eyebrow { margin-bottom: 8px; }
+.status-dot { width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; background: #e6b86a; box-shadow: 0 0 0 6px rgba(230, 184, 106, 0.12); }
+.mode-switch { display: flex; gap: 8px; margin: 24px 0; padding-bottom: 8px; border-bottom: 1px solid rgba(244, 241, 232, 0.18); }
+.mode-button, .primary-button, .secondary-button { border: 0; border-radius: 4px; font: 700 0.9rem/1.1 sans-serif; cursor: pointer; }
+.mode-button { padding: 8px 0; color: #b8c5b5; background: transparent; }
+.mode-button + .mode-button { margin-left: 16px; }
+.mode-button.is-active { color: #e6b86a; }
+form { display: grid; gap: 10px; }
+label { color: #d8dfd4; font: 700 0.8rem/1.2 sans-serif; letter-spacing: 0.04em; }
+input { width: 100%; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.2 sans-serif; }
+input:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
+.field-note, .form-status { min-height: 1.4em; font: 0.88rem/1.4 sans-serif; }
+.primary-button, .secondary-button { width: fit-content; padding: 12px 16px; }
+.primary-button { margin-top: 8px; color: #18251f; background: #e6b86a; }
+.secondary-button { color: #f4f1e8; background: #536b4f; }
+.finder-form { grid-template-columns: 1fr auto; align-items: end; }
+.finder-form input { max-width: 180px; letter-spacing: 0.2em; }
+.account-panel { border-color: rgba(230, 184, 106, 0.5); }
+.account-panel .secondary-button { margin-top: 18px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 560px) {
+  .shell { padding: 48px 0; }
+  .hero h1 { font-size: 3.5rem; }
+  .panel { margin-top: 56px; }
+  .finder-form { grid-template-columns: 1fr; }
+  .finder-form input { max-width: none; }
+}

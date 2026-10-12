@@ -1,0 +1,12 @@
+name = "tatorttracker2-api"
+main = "worker/index.js"
+compatibility_date = "2026-10-12"
+
+[vars]
+FRONTEND_ORIGIN = "https://danielrieger-lab.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tatorttracker-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "worker/migrations"

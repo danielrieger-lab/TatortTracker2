@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "python -m http.server 4173"
+    "dev": "python -m http.server 4173",
+    "dev:api": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply tatorttracker-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply tatorttracker-db --remote",
+    "deploy:api": "wrangler deploy"
   }
 }

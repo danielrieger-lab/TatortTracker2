@@ -11,13 +11,47 @@
   <body>
     <main class="shell">
       <header class="hero">
-        <p class="eyebrow">Neue Sammlung</p>
+        <p class="eyebrow">Gemeinsam schauen</p>
         <h1>TatortTracker2</h1>
-        <p class="intro">Eine neue, eigenständige PWA für deine Tatort-Sammlung.</p>
+        <p class="intro">Bewerte Fälle, finde Freunde und behalte deine Sammlung im Blick.</p>
       </header>
-      <section class="panel" aria-labelledby="status-title">
-        <h2 id="status-title">Bereit für den nächsten Fall</h2>
-        <p id="app-status">Die neue App-Struktur ist eingerichtet.</p>
+      <section class="panel auth-panel" aria-labelledby="auth-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Dein Zugang</p>
+            <h2 id="auth-title">Anmelden oder beitreten</h2>
+          </div>
+          <span class="status-dot" aria-hidden="true"></span>
+        </div>
+        <div class="mode-switch" role="tablist" aria-label="Zugang auswählen">
+          <button class="mode-button is-active" data-mode="login" type="button">Anmelden</button>
+          <button class="mode-button" data-mode="register" type="button">Konto erstellen</button>
+        </div>
+        <form id="auth-form">
+          <label for="username">Benutzername</label>
+          <input id="username" name="username" autocomplete="username" minlength="3" maxlength="24" required />
+          <label for="pin">Privater PIN</label>
+          <input id="pin" name="pin" type="password" autocomplete="new-password" minlength="6" maxlength="32" required />
+          <p id="pin-note" class="field-note">Dein PIN bleibt privat. Es gibt zunächst keine Wiederherstellung.</p>
+          <button class="primary-button" type="submit">Anmelden</button>
+        </form>
+        <p id="auth-status" class="form-status" role="status"></p>
+      </section>
+      <section class="panel finder-panel" aria-labelledby="finder-title">
+        <p class="eyebrow">Freunde finden</p>
+        <h2 id="finder-title">Vierstelliger Freundescode</h2>
+        <form id="finder-form" class="finder-form">
+          <label class="sr-only" for="friend-code">Freundescode</label>
+          <input id="friend-code" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="0000" required />
+          <button class="secondary-button" type="submit">Suchen</button>
+        </form>
+        <p id="finder-status" class="form-status" role="status"></p>
+      </section>
+      <section id="account-panel" class="panel account-panel" aria-live="polite" hidden>
+        <p class="eyebrow">Dein Profil</p>
+        <h2 id="account-name"></h2>
+        <p>Dein Freundescode: <strong id="account-code"></strong></p>
+        <button id="logout-button" class="secondary-button" type="button">Abmelden</button>
       </section>
     </main>
     <script type="module" src="src/app.js"></script>
