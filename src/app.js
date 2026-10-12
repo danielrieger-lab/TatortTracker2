@@ -1,4 +1,4 @@
-const API_BASE = window.TATORT_API_URL || "https://tatorttracker2-api.tatorttracker.workers.dev/api";
+const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const authForm = document.querySelector("#auth-form");
 const authSubmit = authForm.querySelector("button[type=submit]");
 const authStatus = document.querySelector("#auth-status");
