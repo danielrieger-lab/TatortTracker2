@@ -51,4 +51,4 @@ The frontend uses `/api` by default. When the Worker is deployed on a separate h
 
 The current API implements username plus private PIN authentication, secure cookie sessions, logout, current-user lookup, four-digit friend-code lookup, ratings, comments, follows, blocking, reports, moderation, and a D1-backed episode catalog. There is intentionally no account recovery yet.
 
-The PWA caches the public episode catalog and unfinished review drafts in the browser's local storage. Authenticated data remains on the Worker and D1; private API responses are not added to the service-worker cache.
+The PWA caches the public episode catalog and unfinished review drafts in the browser's local storage. The original 1,350-episode archive is bundled under `data/` and searchable offline. Authenticated data remains on the Worker and D1; private API responses are not added to the service-worker cache.

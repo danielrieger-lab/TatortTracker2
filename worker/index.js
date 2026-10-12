@@ -148,12 +148,12 @@ async function episodeActivity(episodeId, env, headers) {
 }
 
 async function listEpisodes(env, headers) {
-  const episodes = await env.DB.prepare("SELECT id, title, team, air_date AS airDate, synopsis FROM episodes ORDER BY air_date DESC LIMIT 100").all();
+  const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
   return json({ episodes: episodes.results || [] }, 200, headers);
 }
 
 async function episodeDetail(episodeId, env, headers) {
-  const episode = await env.DB.prepare("SELECT id, title, team, air_date AS airDate, synopsis FROM episodes WHERE id = ?1").bind(episodeId).first();
+  const episode = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog WHERE id = ?1").bind(episodeId).first();
   if (!episode) return json({ error: "Episode not found." }, 404, headers);
   return json({ episode }, 200, headers);
 }

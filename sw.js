@@ -1,5 +1,8 @@
 const CACHE_NAME = "tatorttracker2-v2";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./src/app.js", "./src/styles.css"];
+const ASSETS = [
+  "./", "./index.html", "./manifest.webmanifest", "./src/app.js", "./src/styles.css",
+  "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));

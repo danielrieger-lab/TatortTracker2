@@ -11,6 +11,8 @@ const reportList = document.querySelector("#report-list");
 let authMode = "login";
 const EPISODE_CACHE_KEY = "tatorttracker.episodes.v1";
 const REVIEW_DRAFT_KEY = "tatorttracker.review-draft.v1";
+const FULL_CATALOG_SOURCE = "data/tatort-episodes.json";
+let allEpisodes = [];
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -87,7 +89,7 @@ function renderEpisode(episode) {
   const title = document.createElement("h3");
   title.textContent = episode.title;
   const meta = document.createElement("p");
-  meta.textContent = `${episode.team} | ${episode.airDate || "Datum offen"}`;
+  meta.textContent = `${episode.team || episode.investigator || "Ermittler offen"} | ${episode.airDate || episode.date || "Datum offen"}${episode.location ? ` | ${episode.location}` : ""}`;
   const synopsis = document.createElement("p");
   synopsis.textContent = episode.synopsis;
   const button = document.createElement("button");
@@ -97,6 +99,26 @@ function renderEpisode(episode) {
   button.addEventListener("click", () => selectEpisode(episode));
   item.append(title, meta, synopsis, button);
   return item;
+}
+
+function normalizeCatalogEpisode(episode) {
+  return {
+    id: String(episode.id || episode.no),
+    title: episode.title,
+    team: episode.team || episode.ermittler || "",
+    investigator: episode.ermittler || episode.investigator || "",
+    airDate: episode.airDate || episode.date || "",
+    location: episode.location || "",
+    synopsis: episode.synopsis || episode.besonderheiten || "Keine Beschreibung vorhanden.",
+  };
+}
+
+function renderFilteredEpisodes() {
+  const query = document.querySelector("#episode-search").value.trim().toLocaleLowerCase("de-DE");
+  const filtered = allEpisodes.filter((episode) => [episode.id, episode.title, episode.team, episode.investigator, episode.location, episode.airDate]
+    .join(" ").toLocaleLowerCase("de-DE").includes(query));
+  document.querySelector("#episode-list").replaceChildren(...filtered.slice(0, 100).map(renderEpisode));
+  document.querySelector("#episodes-status").textContent = `${filtered.length.toLocaleString("de-DE")} Folgen${filtered.length > 100 ? " (erste 100 angezeigt)" : ""}.`;
 }
 
 function selectEpisode(episode) {
@@ -113,13 +135,28 @@ async function loadEpisodes() {
   const list = document.querySelector("#episode-list");
   try {
     const data = await request("/episodes");
-    localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(data.episodes));
-    list.replaceChildren(...data.episodes.map(renderEpisode));
+    const onlineEpisodes = data.episodes.map(normalizeCatalogEpisode);
+    if (onlineEpisodes.length < 1000) {
+      throw new Error("Online catalog is incomplete");
+    }
+    allEpisodes = onlineEpisodes;
+    localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(allEpisodes));
+    renderFilteredEpisodes();
     status.textContent = "Online synchronisiert.";
   } catch (error) {
-    const cached = JSON.parse(localStorage.getItem(EPISODE_CACHE_KEY) || "[]");
-    list.replaceChildren(...cached.map(renderEpisode));
-    status.textContent = cached.length ? "Offline: gespeicherte Sammlung." : "Sammlung offline nicht verfuegbar.";
+    try {
+      const response = await fetch(`${FULL_CATALOG_SOURCE}?refresh=${Date.now()}`, { cache: "no-store" });
+      const catalog = await response.json();
+      allEpisodes = catalog.map(normalizeCatalogEpisode);
+      localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(allEpisodes));
+      renderFilteredEpisodes();
+      status.textContent = "Lokaler Vollkatalog geladen.";
+    } catch {
+      const cached = JSON.parse(localStorage.getItem(EPISODE_CACHE_KEY) || "[]");
+      allEpisodes = cached;
+      renderFilteredEpisodes();
+      status.textContent = cached.length ? "Offline: gespeicherte Sammlung." : "Sammlung offline nicht verfuegbar.";
+    }
   }
 }
 
@@ -141,6 +178,7 @@ function restoreReviewDraft() {
 }
 
 document.querySelector("#refresh-episodes").addEventListener("click", loadEpisodes);
+document.querySelector("#episode-search").addEventListener("input", renderFilteredEpisodes);
 
 document.querySelectorAll("[data-mode]").forEach((button) => {
   button.addEventListener("click", () => {
