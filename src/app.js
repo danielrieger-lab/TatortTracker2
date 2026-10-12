@@ -188,8 +188,8 @@ function restoreReviewDraft() {
     const input = document.querySelector(`[data-field="${field}"]`);
     if (input) input.value = value;
   }
-  for (const id of ["watched-date", "watch-count", "favorite-character", "least-favorite-character", "notes"]) {
-    const key = id.replaceAll("-", "");
+  const draftFields = { "watched-date": "watchedDate", "watch-count": "watchCount", "favorite-character": "favoriteCharacter", "least-favorite-character": "leastFavoriteCharacter", notes: "notes" };
+  for (const [id, key] of Object.entries(draftFields)) {
     if (draft[key] !== undefined) document.querySelector(`#${id}`).value = draft[key];
   }
 }
