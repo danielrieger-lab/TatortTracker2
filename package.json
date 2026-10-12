@@ -9,5 +9,8 @@
     "db:migrate:local": "wrangler d1 migrations apply tatorttracker-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply tatorttracker-db --remote",
     "deploy:api": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.149.0"
   }
 }
