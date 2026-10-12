@@ -137,8 +137,8 @@ function renderFilteredEpisodes() {
   const query = document.querySelector("#episode-search").value.trim().toLocaleLowerCase("de-DE");
   const filtered = allEpisodes.filter((episode) => [episode.id, episode.title, episode.team, episode.investigator, episode.location, episode.airDate]
     .join(" ").toLocaleLowerCase("de-DE").includes(query));
-  document.querySelector("#episode-list").replaceChildren(...filtered.slice(0, 100).map(renderEpisode));
-  document.querySelector("#episodes-status").textContent = `${filtered.length.toLocaleString("de-DE")} Folgen${filtered.length > 100 ? " (erste 100 angezeigt)" : ""}.`;
+  document.querySelector("#episode-list").replaceChildren(...filtered.map(renderEpisode));
+  document.querySelector("#episodes-status").textContent = `${filtered.length.toLocaleString("de-DE")} Folgen.`;
 }
 
 function selectEpisode(episode) {
