@@ -80,6 +80,8 @@ input:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
 .account-panel .secondary-button { margin-top: 18px; }
 .review-panel textarea { width: 100%; resize: vertical; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }
 .review-panel textarea:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
+.report-panel textarea, .report-panel select { width: 100%; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }
+.report-panel textarea:focus, .report-panel select:focus { outline: 2px solid #e6b86a; outline-offset: 2px; }
 .review-panel input[type="range"] { padding: 0; accent-color: #e6b86a; }
 .episode-summary { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(244, 241, 232, 0.18); }
 .episode-summary p { margin-top: 0; }

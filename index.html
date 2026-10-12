@@ -72,6 +72,24 @@
           <ul id="comment-list"></ul>
         </div>
       </section>
+      <section class="panel report-panel" aria-labelledby="report-title">
+        <p class="eyebrow">Gemeinschaft schützen</p>
+        <h2 id="report-title">Inhalt melden</h2>
+        <form id="report-form">
+          <label for="report-type">Art</label>
+          <select id="report-type">
+            <option value="user">Benutzer</option>
+            <option value="comment">Kommentar</option>
+            <option value="episode">Fall</option>
+          </select>
+          <label for="report-target">ID oder Freundescode</label>
+          <input id="report-target" maxlength="120" required />
+          <label for="report-reason">Grund</label>
+          <textarea id="report-reason" maxlength="500" minlength="3" rows="3" required></textarea>
+          <button class="secondary-button" type="submit">Meldung senden</button>
+        </form>
+        <p id="report-status" class="form-status" role="status"></p>
+      </section>
     </main>
     <script type="module" src="src/app.js"></script>
   </body>

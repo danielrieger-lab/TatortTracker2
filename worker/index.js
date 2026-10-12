@@ -52,6 +52,16 @@ export default {
       if (url.pathname === "/api/blocks" && (request.method === "POST" || request.method === "DELETE")) {
         return changeBlock(request, env, headers);
       }
+      if (url.pathname === "/api/reports" && request.method === "POST") {
+        return createReport(request, env, headers);
+      }
+      if (url.pathname === "/api/admin/reports" && request.method === "GET") {
+        return listReports(request, env, headers);
+      }
+      const reportMatch = url.pathname.match(/^\/api\/admin\/reports\/([a-f0-9-]+)$/);
+      if (reportMatch && request.method === "PATCH") {
+        return updateReport(reportMatch[1], request, env, headers);
+      }
       return json({ error: "Not found" }, 404, headers);
     } catch (error) {
       console.error(error);
@@ -196,12 +206,49 @@ async function changeBlock(request, env, headers) {
   return json({ blocked: false }, 200, headers);
 }
 
+async function createReport(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const targetType = cleanReportType(body.targetType);
+  const targetId = typeof body.targetId === "string" ? body.targetId.trim().slice(0, 120) : "";
+  const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+  if (!targetType || !targetId || reason.length < 3 || reason.length > 500) {
+    return json({ error: "Target and a reason of 3-500 characters are required." }, 400, headers);
+  }
+  const existing = await env.DB.prepare("SELECT id FROM reports WHERE reporter_id = ?1 AND target_type = ?2 AND target_id = ?3 AND status = 'open'")
+    .bind(user.id, targetType, targetId).first();
+  if (existing) return json({ error: "You already reported this." }, 409, headers);
+  const id = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO reports (id, reporter_id, target_type, target_id, reason) VALUES (?1, ?2, ?3, ?4, ?5)")
+    .bind(id, user.id, targetType, targetId, reason).run();
+  return json({ ok: true, reportId: id }, 201, headers);
+}
+
+async function listReports(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user?.isAdmin) return json({ error: "Admin access required." }, 403, headers);
+  const reports = await env.DB.prepare("SELECT reports.id, reports.target_type AS targetType, reports.target_id AS targetId, reports.reason, reports.status, reports.created_at AS createdAt, users.username AS reporter FROM reports JOIN users ON users.id = reports.reporter_id ORDER BY reports.created_at DESC LIMIT 100").all();
+  return json({ reports: reports.results || [] }, 200, headers);
+}
+
+async function updateReport(id, request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user?.isAdmin) return json({ error: "Admin access required." }, 403, headers);
+  const body = await readJson(request);
+  const status = ["open", "resolved", "dismissed"].includes(body.status) ? body.status : "";
+  if (!status) return json({ error: "Invalid report status." }, 400, headers);
+  const result = await env.DB.prepare("UPDATE reports SET status = ?1, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?2").bind(status, id).run();
+  if (!result.meta.changes) return json({ error: "Report not found." }, 404, headers);
+  return json({ ok: true, status }, 200, headers);
+}
+
 async function authenticatedUser(request, env) {
   const token = getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   if (!token) return null;
-  const row = await env.DB.prepare("SELECT users.id, users.username, users.friend_code FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND sessions.expires_at > datetime('now')")
+  const row = await env.DB.prepare("SELECT users.id, users.username, users.friend_code, users.is_admin FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND sessions.expires_at > datetime('now')")
     .bind(await digest(token)).first();
-  return row ? { id: row.id, username: row.username, friendCode: row.friend_code } : null;
+  return row ? { id: row.id, username: row.username, friendCode: row.friend_code, isAdmin: Boolean(row.is_admin) } : null;
 }
 
 async function createSessionResponse(userId, user, env, headers, status) {
@@ -220,6 +267,7 @@ async function readJson(request) {
 function cleanUsername(value) { return typeof value === "string" ? value.trim() : ""; }
 function cleanPin(value) { return typeof value === "string" ? value : ""; }
 function cleanEpisodeId(value) { return typeof value === "string" && /^[a-zA-Z0-9_-]{1,80}$/.test(value) ? value : ""; }
+function cleanReportType(value) { return ["user", "comment", "episode"].includes(value) ? value : ""; }
 function randomCode() {
   const bytes = new Uint32Array(1);
   crypto.getRandomValues(bytes);

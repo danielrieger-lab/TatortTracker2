@@ -137,6 +137,26 @@ document.querySelector("#review-form").addEventListener("submit", async (event) 
   }
 });
 
+document.querySelector("#report-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const status = document.querySelector("#report-status");
+  status.textContent = "Wird gesendet ...";
+  try {
+    await request("/reports", {
+      method: "POST",
+      body: JSON.stringify({
+        targetType: document.querySelector("#report-type").value,
+        targetId: document.querySelector("#report-target").value,
+        reason: document.querySelector("#report-reason").value,
+      }),
+    });
+    status.textContent = "Meldung gesendet.";
+    document.querySelector("#report-form").reset();
+  } catch (error) {
+    status.textContent = error.message;
+  }
+});
+
 request("/me").then((data) => showUser(data.user)).catch(() => showUser(null));
 
 if ("serviceWorker" in navigator) {
