@@ -8,5 +8,5 @@ FRONTEND_ORIGIN = "https://danielrieger-lab.github.io"
 [[d1_databases]]
 binding = "DB"
 database_name = "tatorttracker-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "7ea08dcc-ca35-4235-bb84-6dbc2969acb5"
 migrations_dir = "worker/migrations"
