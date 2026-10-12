@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="src/styles.css" />
+    <title>Statistik | TatortTracker2</title>
+  </head>
+  <body>
+    <main class="shell stats-shell">
+      <header class="hero stats-hero">
+        <p class="eyebrow">Deine Sammlung</p>
+        <h1>Statistik</h1>
+        <p class="intro">Dein Blick auf Bewertungen, Sehgewohnheiten und Lieblingsfälle.</p>
+      </header>
+      <p id="stats-status" class="form-status" role="status">Anmelden, um deine Statistik zu sehen.</p>
+      <section id="stats-content" hidden>
+        <div class="stats-grid">
+          <article class="stat-card"><strong id="stat-rated">0</strong><span>bewertete Folgen</span></article>
+          <article class="stat-card"><strong id="stat-watched">0</strong><span>gesehene Folgen</span></article>
+          <article class="stat-card"><strong id="stat-average">-</strong><span>Durchschnitt</span></article>
+        </div>
+        <section class="panel stats-panel"><h2>Kategorien</h2><div id="category-list" class="category-list"></div></section>
+        <section class="panel stats-panel"><h2>Beste Folgen</h2><ol id="best-list" class="rank-list"></ol></section>
+        <section class="panel stats-panel"><h2>Gruseligste Folgen</h2><ol id="scary-list" class="rank-list"></ol></section>
+        <section class="panel stats-panel"><h2>Beste Teams</h2><ol id="team-list" class="rank-list"></ol></section>
+        <section class="panel stats-panel"><h2>Beste Städte</h2><ol id="city-list" class="rank-list"></ol></section>
+      </section>
+      <a class="secondary-button stats-back" href="index.html">Zu den Episoden</a>
+    </main>
+    <script type="module" src="src/stats.js"></script>
+  </body>
+</html>

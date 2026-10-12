@@ -46,6 +46,9 @@ export default {
       if (url.pathname === "/api/comments" && request.method === "POST") {
         return addComment(request, env, headers);
       }
+      if (url.pathname === "/api/statistics" && request.method === "GET") {
+        return statistics(request, env, headers);
+      }
       if (url.pathname === "/api/episodes" && request.method === "GET") {
         return listEpisodes(env, headers);
       }
@@ -156,6 +159,21 @@ async function episodeDetail(episodeId, env, headers) {
   const episode = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog WHERE id = ?1").bind(episodeId).first();
   if (!episode) return json({ error: "Episode not found." }, 404, headers);
   return json({ episode }, 200, headers);
+}
+
+async function statistics(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const rows = await env.DB.prepare("SELECT episode_catalog.id, episode_catalog.title, episode_catalog.investigator AS team, episode_catalog.location, ratings.score, ratings.fall_quality AS fallQuality, ratings.team_rating AS teamRating, ratings.direction_rating AS directionRating, ratings.tension, ratings.scary, ratings.watch_count AS watchCount FROM ratings LEFT JOIN episode_catalog ON episode_catalog.id = ratings.episode_id WHERE ratings.user_id = ?1").bind(user.id).all();
+  const ratings = rows.results || [];
+  const average = (key) => ratings.length ? Number((ratings.reduce((sum, item) => sum + Number(item[key] || 0), 0) / ratings.length).toFixed(1)) : null;
+  const rank = (key, limit = 10) => ratings.filter((item) => item[key]).sort((a, b) => Number(b[key]) - Number(a[key])).slice(0, limit).map((item) => ({ title: item.title || item.id, score: item[key], id: item.id }));
+  const groups = (key) => Object.values(ratings.reduce((result, item) => {
+    const label = String(item[key] || "Unbekannt").trim();
+    const group = result[label] || { label, total: 0, count: 0 };
+    group.total += Number(item.score || 0); group.count += 1; result[label] = group; return result;
+  }, {})).map((group) => ({ label: group.label, score: Number((group.total / group.count).toFixed(1)), count: group.count })).sort((a, b) => b.score - a.score).slice(0, 10);
+  return json({ overview: { rated: ratings.length, watched: ratings.filter((item) => Number(item.watchCount) > 0).length, average: average("score") }, categories: { fallQuality: average("fallQuality"), team: average("teamRating"), direction: average("directionRating"), tension: average("tension"), scary: average("scary") }, best: rank("score"), worst: rank("score").reverse(), scary: rank("scary"), teams: groups("team"), cities: groups("location") }, 200, headers);
 }
 
 async function saveRating(request, env, headers) {
