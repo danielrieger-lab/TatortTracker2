@@ -70,6 +70,41 @@ document.querySelector("#logout-button").addEventListener("click", async () => {
   authStatus.textContent = "Du bist abgemeldet.";
 });
 
+const scoreInput = document.querySelector("#score");
+scoreInput.addEventListener("input", () => {
+  document.querySelector("#score-value").textContent = scoreInput.value;
+});
+
+async function loadEpisodeActivity(episodeId) {
+  const data = await request(`/episodes/${episodeId}/activity`);
+  document.querySelector("#episode-summary").hidden = false;
+  document.querySelector("#average-score").textContent = data.rating.average ?? "Noch keine";
+  document.querySelector("#rating-count").textContent = data.rating.count;
+  const list = document.querySelector("#comment-list");
+  list.replaceChildren(...data.comments.map((item) => {
+    const entry = document.createElement("li");
+    entry.textContent = `${item.username}: ${item.body}`;
+    return entry;
+  }));
+}
+
+document.querySelector("#review-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const status = document.querySelector("#review-status");
+  const episodeId = document.querySelector("#episode-id").value;
+  status.textContent = "Wird gespeichert ...";
+  try {
+    await request("/ratings", { method: "POST", body: JSON.stringify({ episodeId, score: Number(scoreInput.value) }) });
+    const comment = document.querySelector("#comment").value.trim();
+    if (comment) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId, body: comment }) });
+    await loadEpisodeActivity(episodeId);
+    status.textContent = "Bewertung gespeichert.";
+    document.querySelector("#comment").value = "";
+  } catch (error) {
+    status.textContent = error.message;
+  }
+});
+
 request("/me").then((data) => showUser(data.user)).catch(() => showUser(null));
 
 if ("serviceWorker" in navigator) {

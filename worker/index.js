@@ -36,6 +36,16 @@ export default {
       if (codeMatch && request.method === "GET") {
         return findByCode(codeMatch[1], env, headers);
       }
+      const episodeMatch = url.pathname.match(/^\/api\/episodes\/([a-zA-Z0-9_-]+)\/activity$/);
+      if (episodeMatch && request.method === "GET") {
+        return episodeActivity(episodeMatch[1], env, headers);
+      }
+      if (url.pathname === "/api/ratings" && request.method === "POST") {
+        return saveRating(request, env, headers);
+      }
+      if (url.pathname === "/api/comments" && request.method === "POST") {
+        return addComment(request, env, headers);
+      }
       return json({ error: "Not found" }, 404, headers);
     } catch (error) {
       console.error(error);
@@ -108,6 +118,41 @@ async function findByCode(code, env, headers) {
   return json({ user: user ? { id: user.id, username: user.username, friendCode: user.friend_code } : null }, 200, headers);
 }
 
+async function episodeActivity(episodeId, env, headers) {
+  const summary = await env.DB.prepare("SELECT COUNT(*) AS count, ROUND(AVG(score), 1) AS average FROM ratings WHERE episode_id = ?1").bind(episodeId).first();
+  const comments = await env.DB.prepare("SELECT comments.id, comments.body, comments.created_at AS createdAt, users.username FROM comments JOIN users ON users.id = comments.user_id WHERE comments.episode_id = ?1 ORDER BY comments.created_at DESC LIMIT 50").bind(episodeId).all();
+  return json({ rating: { count: summary?.count || 0, average: summary?.average || null }, comments: comments.results || [] }, 200, headers);
+}
+
+async function saveRating(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const episodeId = cleanEpisodeId(body.episodeId);
+  const score = Number(body.score);
+  if (!episodeId || !Number.isInteger(score) || score < 1 || score > 10) {
+    return json({ error: "Episode and a score from 1 to 10 are required." }, 400, headers);
+  }
+  await env.DB.prepare("INSERT INTO ratings (user_id, episode_id, score) VALUES (?1, ?2, ?3) ON CONFLICT(user_id, episode_id) DO UPDATE SET score = excluded.score, updated_at = CURRENT_TIMESTAMP")
+    .bind(user.id, episodeId, score).run();
+  return json({ ok: true, episodeId, score }, 200, headers);
+}
+
+async function addComment(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const episodeId = cleanEpisodeId(body.episodeId);
+  const comment = typeof body.body === "string" ? body.body.trim() : "";
+  if (!episodeId || !comment || comment.length > 500) {
+    return json({ error: "Episode and a comment of 1-500 characters are required." }, 400, headers);
+  }
+  const id = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO comments (id, user_id, episode_id, body) VALUES (?1, ?2, ?3, ?4)")
+    .bind(id, user.id, episodeId, comment).run();
+  return json({ comment: { id, username: user.username, body: comment } }, 201, headers);
+}
+
 async function authenticatedUser(request, env) {
   const token = getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   if (!token) return null;
@@ -131,6 +176,7 @@ async function readJson(request) {
 
 function cleanUsername(value) { return typeof value === "string" ? value.trim() : ""; }
 function cleanPin(value) { return typeof value === "string" ? value : ""; }
+function cleanEpisodeId(value) { return typeof value === "string" && /^[a-zA-Z0-9_-]{1,80}$/.test(value) ? value : ""; }
 function randomCode() {
   const bytes = new Uint32Array(1);
   crypto.getRandomValues(bytes);
