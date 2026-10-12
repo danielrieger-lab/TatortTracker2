@@ -1,6 +1,6 @@
 const SESSION_COOKIE = "tt_session";
 const SESSION_DAYS = 30;
-const PIN_ITERATIONS = 120000;
+const PIN_ITERATIONS = 10000;
 
 export default {
   async fetch(request, env) {
