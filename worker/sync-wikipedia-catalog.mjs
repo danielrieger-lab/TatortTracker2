@@ -25,8 +25,9 @@ for (const line of raw.split(/\r?\n/)) {
   if (current >= 0 && line.trim()) cells[current] = `${cells[current]} ${line.trim()}`;
 }
 const wrangler = resolve("node_modules/wrangler/bin/wrangler.js");
-for (let offset = 0; offset < rows.length; offset += 50) {
-  const values = rows.slice(offset, offset + 50).map((row) => `('${escape(row.no)}','${escape(row.title)}','${escape(row.sender)}','${escape(row.date)}','${escape(row.investigator)}','${escape(row.notes)}','[]')`).join(",");
+const syncRows = rows.filter((row) => Number(row.no) >= 1338);
+for (let offset = 0; offset < syncRows.length; offset += 50) {
+  const values = syncRows.slice(offset, offset + 50).map((row) => `('${escape(row.no)}','${escape(row.title)}','${escape(row.sender)}','${escape(row.date)}','${escape(row.investigator)}','${escape(row.notes)}','[]')`).join(",");
   const sql = `INSERT OR REPLACE INTO episode_catalog (id,title,sender,air_date,investigator,notes,roles_json) VALUES ${values};\n`;
   const file = resolve(`.wrangler-wikipedia-${offset}.sql`);
   writeFileSync(file, sql, "utf8");
@@ -34,4 +35,4 @@ for (let offset = 0; offset < rows.length; offset += 50) {
   unlinkSync(file);
   if (result.status !== 0) process.exit(result.status || 1);
 }
-console.log(`Synchronized ${rows.length} Wikipedia rows.`);
+console.log(`Synchronized ${syncRows.length} current/upcoming Wikipedia rows.`);
