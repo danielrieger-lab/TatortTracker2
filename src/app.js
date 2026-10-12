@@ -179,15 +179,6 @@ function renderFilteredEpisodes() {
   document.querySelector("#episodes-status").textContent = `${filtered.length.toLocaleString("de-DE")} Folgen.`;
 }
 
-function selectEpisode(episode) {
-  document.querySelector("#episode-id").value = episode.id;
-  document.querySelector("#review-title").textContent = episode.title;
-  document.querySelector("#review-status").textContent = "Fall ausgewaehlt.";
-  saveReviewDraft();
-  loadEpisodeActivity(episode.id).catch(() => {});
-  document.querySelector("#review-form").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 async function loadEpisodes() {
   const status = document.querySelector("#episodes-status");
   const list = document.querySelector("#episode-list");
@@ -215,40 +206,6 @@ async function loadEpisodes() {
       renderFilteredEpisodes();
       status.textContent = cached.length ? "Offline: gespeicherte Sammlung." : "Sammlung offline nicht verfuegbar.";
     }
-  }
-}
-
-function reviewValues() {
-  return {
-    episodeId: document.querySelector("#episode-id").value,
-    score: Number(scoreInput.value),
-    ...Object.fromEntries([...document.querySelectorAll(".detail-rating")].map((input) => [input.dataset.field, Number(input.value)])),
-    watchedDate: document.querySelector("#watched-date").value,
-    watchCount: Number(document.querySelector("#watch-count").value || 1),
-    favoriteCharacter: document.querySelector("#favorite-character").value,
-    leastFavoriteCharacter: document.querySelector("#least-favorite-character").value,
-    notes: document.querySelector("#notes").value,
-  };
-}
-
-function saveReviewDraft() {
-  localStorage.setItem(REVIEW_DRAFT_KEY, JSON.stringify({ ...reviewValues(), comment: document.querySelector("#comment").value }));
-}
-
-function restoreReviewDraft() {
-  const draft = JSON.parse(localStorage.getItem(REVIEW_DRAFT_KEY) || "null");
-  if (!draft) return;
-  document.querySelector("#episode-id").value = draft.episodeId || "";
-  scoreInput.value = draft.score || "5";
-  document.querySelector("#score-value").textContent = scoreInput.value;
-  document.querySelector("#comment").value = draft.comment || "";
-  for (const [field, value] of Object.entries(draft)) {
-    const input = document.querySelector(`[data-field="${field}"]`);
-    if (input) input.value = value;
-  }
-  const draftFields = { "watched-date": "watchedDate", "watch-count": "watchCount", "favorite-character": "favoriteCharacter", "least-favorite-character": "leastFavoriteCharacter", notes: "notes" };
-  for (const [id, key] of Object.entries(draftFields)) {
-    if (draft[key] !== undefined) document.querySelector(`#${id}`).value = draft[key];
   }
 }
 
@@ -330,45 +287,6 @@ document.querySelector("#logout-button").addEventListener("click", async () => {
   authStatus.textContent = "Du bist abgemeldet.";
 });
 
-const scoreInput = document.querySelector("#score");
-scoreInput.addEventListener("input", () => {
-  document.querySelector("#score-value").textContent = scoreInput.value;
-});
-
-async function loadEpisodeActivity(episodeId) {
-  const data = await request(`/episodes/${episodeId}/activity`);
-  document.querySelector("#episode-summary").hidden = false;
-  document.querySelector("#average-score").textContent = data.rating.average ?? "Noch keine";
-  document.querySelector("#rating-count").textContent = data.rating.count;
-  const list = document.querySelector("#comment-list");
-  list.replaceChildren(...data.comments.map((item) => {
-    const entry = document.createElement("li");
-    entry.textContent = `${item.username}: ${item.body}`;
-    return entry;
-  }));
-}
-
-document.querySelector("#review-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const status = document.querySelector("#review-status");
-  const episodeId = document.querySelector("#episode-id").value;
-  status.textContent = "Wird gespeichert ...";
-  try {
-    await request("/ratings", { method: "POST", body: JSON.stringify(reviewValues()) });
-    const comment = document.querySelector("#comment").value.trim();
-    if (comment) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId, body: comment }) });
-    await loadEpisodeActivity(episodeId);
-    status.textContent = "Bewertung gespeichert.";
-    document.querySelector("#comment").value = "";
-    localStorage.removeItem(REVIEW_DRAFT_KEY);
-  } catch (error) {
-    status.textContent = error.message;
-  }
-});
-
-document.querySelector("#comment").addEventListener("input", saveReviewDraft);
-scoreInput.addEventListener("change", saveReviewDraft);
-
 document.querySelector("#report-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const status = document.querySelector("#report-status");
@@ -390,7 +308,6 @@ document.querySelector("#report-form").addEventListener("submit", async (event) 
 });
 
 request("/me").then((data) => showUser(data.user)).catch(() => showUser(null));
-restoreReviewDraft();
 loadEpisodes();
 
 if ("serviceWorker" in navigator) {

@@ -70,41 +70,6 @@
         <p id="episodes-status" class="form-status" role="status"></p>
         <ul id="episode-list" class="episode-list"></ul>
       </section>
-      <section class="panel review-panel requires-auth" aria-labelledby="review-title" hidden>
-        <p class="eyebrow">Gemeinsame Sammlung</p>
-        <h2 id="review-title">Fall bewerten</h2>
-        <form id="review-form">
-          <label for="episode-id">Fall-ID</label>
-          <input id="episode-id" placeholder="Aus der Sammlung waehlen" pattern="[a-zA-Z0-9_-]{1,80}" required readonly />
-          <label for="score">Deine Bewertung: <output id="score-value">5</output>/10</label>
-          <input id="score" type="range" min="1" max="10" value="5" />
-          <div class="rating-grid">
-            <label>Fallqualität <input class="detail-rating" data-field="fallQuality" type="range" min="1" max="10" value="5" /></label>
-            <label>Team <input class="detail-rating" data-field="teamRating" type="range" min="1" max="10" value="5" /></label>
-            <label>Inszenierung <input class="detail-rating" data-field="directionRating" type="range" min="1" max="10" value="5" /></label>
-            <label>Spannung <input class="detail-rating" data-field="tension" type="range" min="1" max="10" value="5" /></label>
-            <label>Gruseligkeit <input class="detail-rating" data-field="scary" type="range" min="1" max="10" value="5" /></label>
-          </div>
-          <label for="watched-date">Zuletzt gesehen</label>
-          <input id="watched-date" type="date" />
-          <label for="watch-count">Anzahl gesehen</label>
-          <input id="watch-count" type="number" min="1" max="999" value="1" />
-          <label for="favorite-character">Lieblingsfigur</label>
-          <input id="favorite-character" maxlength="120" />
-          <label for="least-favorite-character">Wenigste Lieblingsfigur</label>
-          <input id="least-favorite-character" maxlength="120" />
-          <label for="notes">Notizen</label>
-          <textarea id="notes" maxlength="1000" rows="3"></textarea>
-          <label for="comment">Kommentar</label>
-          <textarea id="comment" maxlength="500" rows="3" placeholder="Was bleibt hängen?"></textarea>
-          <button class="primary-button" type="submit">Speichern</button>
-        </form>
-        <p id="review-status" class="form-status" role="status"></p>
-        <div id="episode-summary" class="episode-summary" hidden>
-          <p><strong id="average-score"></strong> Durchschnitt aus <span id="rating-count"></span> Bewertungen</p>
-          <ul id="comment-list"></ul>
-        </div>
-      </section>
       <section class="panel report-panel requires-auth" aria-labelledby="report-title" hidden>
         <p class="eyebrow">Gemeinschaft schützen</p>
         <h2 id="report-title">Inhalt melden</h2>
