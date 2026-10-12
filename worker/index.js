@@ -193,7 +193,7 @@ function parseWikipediaEpisodes(raw) {
   let current = -1;
   for (const line of String(raw).split(/\r?\n/)) {
     if (/^\|-/.test(line)) { pushWikipediaRow(rows, cells); cells = []; current = -1; continue; }
-    if (/^\|\}/.test(line)) { pushWikipediaRow(rows, cells); break; }
+    if (/^\|\}/.test(line)) { pushWikipediaRow(rows, cells); cells = []; current = -1; continue; }
     if (/^!/.test(line)) continue;
     const cell = line.match(/^\|\s*(.*)$/);
     if (cell) { cell[1].split("||").forEach((part) => cells.push(part.trim())); current = cells.length - 1; continue; }
