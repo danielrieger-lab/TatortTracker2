@@ -3,7 +3,7 @@
   "short_name": "TatortTracker2",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#18251f",
-  "theme_color": "#18251f",
+  "background_color": "#000000",
+  "theme_color": "#35185a",
   "lang": "de"
 }
