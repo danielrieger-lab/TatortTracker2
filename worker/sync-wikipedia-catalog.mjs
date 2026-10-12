@@ -26,7 +26,7 @@ for (const line of raw.split(/\r?\n/)) {
 }
 const wrangler = resolve("node_modules/wrangler/bin/wrangler.js");
 for (let offset = 0; offset < rows.length; offset += 50) {
-  const values = rows.slice(offset, offset + 50).map((row) => `('${escape(row.no)}','${escape(row.title)}','${escape(row.sender)}','${escape(row.date)}','${escape(row.investigator)}','${escape(row.notes)}')`).join(",");
+  const values = rows.slice(offset, offset + 50).map((row) => `('${escape(row.no)}','${escape(row.title)}','${escape(row.sender)}','${escape(row.date)}','${escape(row.investigator)}','${escape(row.notes)}','[]')`).join(",");
   const sql = `INSERT OR REPLACE INTO episode_catalog (id,title,sender,air_date,investigator,notes,roles_json) VALUES ${values};\n`;
   const file = resolve(`.wrangler-wikipedia-${offset}.sql`);
   writeFileSync(file, sql, "utf8");
