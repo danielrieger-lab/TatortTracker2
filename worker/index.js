@@ -1,6 +1,6 @@
 const SESSION_COOKIE = "tt_session";
 const SESSION_DAYS = 30;
-const PIN_ITERATIONS = 10000;
+const PIN_ITERATIONS = 1000;
 
 export default {
   async fetch(request, env) {
@@ -386,11 +386,16 @@ async function hashPin(pin) {
 }
 
 async function verifyPin(pin, stored) {
-  const [, iterations, saltText, hashText] = String(stored).split("$");
-  if (!iterations || !saltText || !hashText) return false;
-  const salt = Uint8Array.from(atob(saltText.replace(/-/g, "+").replace(/_/g, "/") + "=="), (char) => char.charCodeAt(0));
-  const derived = new Uint8Array(await derivePinKey(pin, salt, Number(iterations)));
-  return timingSafeEqual(derived, decodeBase64Url(hashText));
+  try {
+    const [, iterations, saltText, hashText] = String(stored).split("$");
+    const count = Number(iterations);
+    if (!Number.isInteger(count) || count < 1 || count > 20000 || !saltText || !hashText) return false;
+    const salt = decodeBase64Url(saltText);
+    const derived = new Uint8Array(await derivePinKey(pin, salt, count));
+    return timingSafeEqual(derived, decodeBase64Url(hashText));
+  } catch {
+    return false;
+  }
 }
 
 async function derivePinKey(pin, salt, iterations = PIN_ITERATIONS) {
@@ -398,7 +403,11 @@ async function derivePinKey(pin, salt, iterations = PIN_ITERATIONS) {
   return crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations, hash: "SHA-256" }, key, 256);
 }
 
-function decodeBase64Url(value) { return Uint8Array.from(atob(value.replace(/-/g, "+").replace(/_/g, "/") + "=="), (char) => char.charCodeAt(0)); }
+function decodeBase64Url(value) {
+  const base64 = String(value).replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+  return Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
+}
 function timingSafeEqual(left, right) { return left.length === right.length && left.reduce((result, value, index) => result | (value ^ right[index]), 0) === 0; }
 async function digest(value) { return toBase64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)))); }
 function getCookie(header, name) { return header?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1) || ""; }
