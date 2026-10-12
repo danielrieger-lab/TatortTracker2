@@ -8,6 +8,7 @@ const accountName = document.querySelector("#account-name");
 const accountCode = document.querySelector("#account-code");
 const adminPanel = document.querySelector("#admin-panel");
 const reportList = document.querySelector("#report-list");
+const authPanel = document.querySelector("#auth-panel");
 let authMode = "login";
 const EPISODE_CACHE_KEY = "tatorttracker.episodes.v1";
 const REVIEW_DRAFT_KEY = "tatorttracker.review-draft.v1";
@@ -26,6 +27,10 @@ async function request(path, options = {}) {
 }
 
 function showUser(user) {
+  authPanel.hidden = Boolean(user);
+  document.querySelectorAll(".requires-auth").forEach((element) => {
+    element.hidden = !user;
+  });
   accountPanel.hidden = !user;
   adminPanel.hidden = !user?.isAdmin;
   if (user) {

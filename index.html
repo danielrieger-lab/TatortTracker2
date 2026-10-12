@@ -12,13 +12,13 @@
   </head>
   <body>
     <main class="shell">
-      <header class="hero">
+      <header class="hero requires-auth" hidden>
         <p class="eyebrow">Gemeinsam schauen</p>
         <h1>TatortTracker2</h1>
         <p class="intro">Bewerte Fälle, finde Freunde und behalte deine Sammlung im Blick.</p>
         <a class="secondary-button hero-link" href="stats.html">Statistik öffnen</a>
       </header>
-      <section class="panel auth-panel" aria-labelledby="auth-title">
+      <section id="auth-panel" class="panel auth-panel" aria-labelledby="auth-title">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Dein Zugang</p>
@@ -40,7 +40,7 @@
         </form>
         <p id="auth-status" class="form-status" role="status"></p>
       </section>
-      <section class="panel finder-panel" aria-labelledby="finder-title">
+      <section class="panel finder-panel requires-auth" aria-labelledby="finder-title" hidden>
         <p class="eyebrow">Freunde finden</p>
         <h2 id="finder-title">Vierstelliger Freundescode</h2>
         <form id="finder-form" class="finder-form">
@@ -51,13 +51,13 @@
         <p id="finder-status" class="form-status" role="status"></p>
         <div id="finder-result" class="finder-result" hidden></div>
       </section>
-      <section id="account-panel" class="panel account-panel" aria-live="polite" hidden>
+      <section id="account-panel" class="panel account-panel requires-auth" aria-live="polite" hidden>
         <p class="eyebrow">Dein Profil</p>
         <h2 id="account-name"></h2>
         <p>Dein Freundescode: <strong id="account-code"></strong></p>
         <button id="logout-button" class="secondary-button" type="button">Abmelden</button>
       </section>
-      <section class="panel episodes-panel" aria-labelledby="episodes-title">
+      <section class="panel episodes-panel requires-auth" aria-labelledby="episodes-title" hidden>
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Die Sammlung</p>
@@ -70,7 +70,7 @@
         <p id="episodes-status" class="form-status" role="status"></p>
         <ul id="episode-list" class="episode-list"></ul>
       </section>
-      <section class="panel review-panel" aria-labelledby="review-title">
+      <section class="panel review-panel requires-auth" aria-labelledby="review-title" hidden>
         <p class="eyebrow">Gemeinsame Sammlung</p>
         <h2 id="review-title">Fall bewerten</h2>
         <form id="review-form">
@@ -105,7 +105,7 @@
           <ul id="comment-list"></ul>
         </div>
       </section>
-      <section class="panel report-panel" aria-labelledby="report-title">
+      <section class="panel report-panel requires-auth" aria-labelledby="report-title" hidden>
         <p class="eyebrow">Gemeinschaft schützen</p>
         <h2 id="report-title">Inhalt melden</h2>
         <form id="report-form">
@@ -123,7 +123,7 @@
         </form>
         <p id="report-status" class="form-status" role="status"></p>
       </section>
-      <section id="admin-panel" class="panel admin-panel" aria-labelledby="admin-title" hidden>
+      <section id="admin-panel" class="panel admin-panel requires-auth" aria-labelledby="admin-title" hidden>
         <p class="eyebrow">Moderation</p>
         <div class="panel-heading">
           <h2 id="admin-title">Meldungen</h2>
