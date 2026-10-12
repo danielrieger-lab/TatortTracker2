@@ -314,6 +314,6 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=7", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=8", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
