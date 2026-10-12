@@ -49,4 +49,6 @@ Open <http://localhost:4173>.
 
 The frontend uses `/api` by default. When the Worker is deployed on a separate hostname, define `window.TATORT_API_URL` before `src/app.js` loads, for example `https://api.example.com/api`. Configure `FRONTEND_ORIGIN` in `wrangler.toml` to the exact frontend origin.
 
-The current API implements username plus private PIN authentication, secure cookie sessions, logout, current-user lookup, and four-digit friend-code lookup. There is intentionally no account recovery yet.
+The current API implements username plus private PIN authentication, secure cookie sessions, logout, current-user lookup, four-digit friend-code lookup, ratings, comments, follows, blocking, reports, moderation, and a D1-backed episode catalog. There is intentionally no account recovery yet.
+
+The PWA caches the public episode catalog and unfinished review drafts in the browser's local storage. Authenticated data remains on the Worker and D1; private API responses are not added to the service-worker cache.

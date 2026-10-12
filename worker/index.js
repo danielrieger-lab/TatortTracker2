@@ -46,6 +46,13 @@ export default {
       if (url.pathname === "/api/comments" && request.method === "POST") {
         return addComment(request, env, headers);
       }
+      if (url.pathname === "/api/episodes" && request.method === "GET") {
+        return listEpisodes(env, headers);
+      }
+      const episodeDetailMatch = url.pathname.match(/^\/api\/episodes\/([a-zA-Z0-9_-]+)$/);
+      if (episodeDetailMatch && request.method === "GET") {
+        return episodeDetail(episodeDetailMatch[1], env, headers);
+      }
       if (url.pathname === "/api/follows" && (request.method === "POST" || request.method === "DELETE")) {
         return changeFollow(request, env, headers);
       }
@@ -138,6 +145,17 @@ async function episodeActivity(episodeId, env, headers) {
   const summary = await env.DB.prepare("SELECT COUNT(*) AS count, ROUND(AVG(score), 1) AS average FROM ratings WHERE episode_id = ?1").bind(episodeId).first();
   const comments = await env.DB.prepare("SELECT comments.id, comments.body, comments.created_at AS createdAt, users.username FROM comments JOIN users ON users.id = comments.user_id WHERE comments.episode_id = ?1 ORDER BY comments.created_at DESC LIMIT 50").bind(episodeId).all();
   return json({ rating: { count: summary?.count || 0, average: summary?.average || null }, comments: comments.results || [] }, 200, headers);
+}
+
+async function listEpisodes(env, headers) {
+  const episodes = await env.DB.prepare("SELECT id, title, team, air_date AS airDate, synopsis FROM episodes ORDER BY air_date DESC LIMIT 100").all();
+  return json({ episodes: episodes.results || [] }, 200, headers);
+}
+
+async function episodeDetail(episodeId, env, headers) {
+  const episode = await env.DB.prepare("SELECT id, title, team, air_date AS airDate, synopsis FROM episodes WHERE id = ?1").bind(episodeId).first();
+  if (!episode) return json({ error: "Episode not found." }, 404, headers);
+  return json({ episode }, 200, headers);
 }
 
 async function saveRating(request, env, headers) {

@@ -9,6 +9,8 @@ const accountCode = document.querySelector("#account-code");
 const adminPanel = document.querySelector("#admin-panel");
 const reportList = document.querySelector("#report-list");
 let authMode = "login";
+const EPISODE_CACHE_KEY = "tatorttracker.episodes.v1";
+const REVIEW_DRAFT_KEY = "tatorttracker.review-draft.v1";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -78,6 +80,67 @@ async function updateReportStatus(id, status) {
 }
 
 document.querySelector("#refresh-reports").addEventListener("click", loadReports);
+
+function renderEpisode(episode) {
+  const item = document.createElement("li");
+  item.className = "episode-item";
+  const title = document.createElement("h3");
+  title.textContent = episode.title;
+  const meta = document.createElement("p");
+  meta.textContent = `${episode.team} | ${episode.airDate || "Datum offen"}`;
+  const synopsis = document.createElement("p");
+  synopsis.textContent = episode.synopsis;
+  const button = document.createElement("button");
+  button.className = "secondary-button";
+  button.type = "button";
+  button.textContent = "Bewerten";
+  button.addEventListener("click", () => selectEpisode(episode));
+  item.append(title, meta, synopsis, button);
+  return item;
+}
+
+function selectEpisode(episode) {
+  document.querySelector("#episode-id").value = episode.id;
+  document.querySelector("#review-title").textContent = episode.title;
+  document.querySelector("#review-status").textContent = "Fall ausgewaehlt.";
+  saveReviewDraft();
+  loadEpisodeActivity(episode.id).catch(() => {});
+  document.querySelector("#review-form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function loadEpisodes() {
+  const status = document.querySelector("#episodes-status");
+  const list = document.querySelector("#episode-list");
+  try {
+    const data = await request("/episodes");
+    localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(data.episodes));
+    list.replaceChildren(...data.episodes.map(renderEpisode));
+    status.textContent = "Online synchronisiert.";
+  } catch (error) {
+    const cached = JSON.parse(localStorage.getItem(EPISODE_CACHE_KEY) || "[]");
+    list.replaceChildren(...cached.map(renderEpisode));
+    status.textContent = cached.length ? "Offline: gespeicherte Sammlung." : "Sammlung offline nicht verfuegbar.";
+  }
+}
+
+function saveReviewDraft() {
+  localStorage.setItem(REVIEW_DRAFT_KEY, JSON.stringify({
+    episodeId: document.querySelector("#episode-id").value,
+    score: scoreInput.value,
+    comment: document.querySelector("#comment").value,
+  }));
+}
+
+function restoreReviewDraft() {
+  const draft = JSON.parse(localStorage.getItem(REVIEW_DRAFT_KEY) || "null");
+  if (!draft) return;
+  document.querySelector("#episode-id").value = draft.episodeId || "";
+  scoreInput.value = draft.score || "5";
+  document.querySelector("#score-value").textContent = scoreInput.value;
+  document.querySelector("#comment").value = draft.comment || "";
+}
+
+document.querySelector("#refresh-episodes").addEventListener("click", loadEpisodes);
 
 document.querySelectorAll("[data-mode]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -184,10 +247,14 @@ document.querySelector("#review-form").addEventListener("submit", async (event) 
     await loadEpisodeActivity(episodeId);
     status.textContent = "Bewertung gespeichert.";
     document.querySelector("#comment").value = "";
+    localStorage.removeItem(REVIEW_DRAFT_KEY);
   } catch (error) {
     status.textContent = error.message;
   }
 });
+
+document.querySelector("#comment").addEventListener("input", saveReviewDraft);
+scoreInput.addEventListener("change", saveReviewDraft);
 
 document.querySelector("#report-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -210,6 +277,8 @@ document.querySelector("#report-form").addEventListener("submit", async (event) 
 });
 
 request("/me").then((data) => showUser(data.user)).catch(() => showUser(null));
+restoreReviewDraft();
+loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

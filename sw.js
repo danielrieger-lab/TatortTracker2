@@ -1,4 +1,4 @@
-const CACHE_NAME = "tatorttracker2-v1";
+const CACHE_NAME = "tatorttracker2-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./src/app.js", "./src/styles.css"];
 
 self.addEventListener("install", (event) => {
