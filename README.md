@@ -12,7 +12,7 @@ A standalone vanilla JavaScript progressive web app.
 ## Local development
 
 ```powershell
-python -m http.server 4173 --directory public
+python -m http.server 4173
 ```
 
 Open <http://localhost:4173>.
