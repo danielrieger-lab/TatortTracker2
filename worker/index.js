@@ -49,6 +49,9 @@ export default {
       if (url.pathname === "/api/statistics" && request.method === "GET") {
         return statistics(request, env, headers);
       }
+      if (url.pathname === "/api/admin/sync-episodes" && request.method === "POST") {
+        return manualEpisodeSync(request, env, headers);
+      }
       if (url.pathname === "/api/episodes" && request.method === "GET") {
         return listEpisodes(env, headers);
       }
@@ -77,6 +80,10 @@ export default {
       console.error(error);
       return json({ error: "Internal server error" }, 500, headers);
     }
+  },
+
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(syncEpisodes(env));
   },
 };
 
@@ -154,6 +161,55 @@ async function listEpisodes(env, headers) {
   const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
   return json({ episodes: episodes.results || [] }, 200, headers);
 }
+
+async function manualEpisodeSync(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user?.isAdmin) return json({ error: "Admin access required." }, 403, headers);
+  return json(await syncEpisodes(env), 200, headers);
+}
+
+async function syncEpisodes(env) {
+  const response = await fetch("https://de.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=json&formatversion=2&origin=*&titles=Liste_der_Tatort-Folgen", { headers: { "User-Agent": "TatortTracker2/1.0 (episode sync)" } });
+  if (!response.ok) throw new Error(`Wikipedia returned HTTP ${response.status}`);
+  const data = await response.json();
+  const raw = data?.query?.pages?.[0]?.revisions?.[0]?.content || "";
+  const rows = parseWikipediaEpisodes(raw);
+  const existing = await env.DB.prepare("SELECT id, title FROM episode_catalog").all();
+  const byId = new Map((existing.results || []).map((item) => [item.id, item.title]));
+  const statements = rows.map((row) => {
+    const baseId = String(row.no);
+    const candidate = byId.get(baseId) && byId.get(baseId) !== row.title ? `${baseId}-${slugify(row.title)}` : baseId;
+    byId.set(candidate, row.title);
+    return env.DB.prepare("INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES (?1, ?2, ?3, ?4, ?5, COALESCE((SELECT location FROM episode_catalog WHERE id = ?1), ''), ?6, COALESCE((SELECT roles_json FROM episode_catalog WHERE id = ?1), '[]'))")
+      .bind(candidate, row.title, row.sender, row.date, row.investigator, row.notes);
+  });
+  for (let index = 0; index < statements.length; index += 50) await env.DB.batch(statements.slice(index, index + 50));
+  return { ok: true, synced: rows.length };
+}
+
+function parseWikipediaEpisodes(raw) {
+  const rows = [];
+  let cells = [];
+  let current = -1;
+  for (const line of String(raw).split(/\r?\n/)) {
+    if (/^\|-/.test(line)) { pushWikipediaRow(rows, cells); cells = []; current = -1; continue; }
+    if (/^\|\}/.test(line)) { pushWikipediaRow(rows, cells); break; }
+    if (/^!/.test(line)) continue;
+    const cell = line.match(/^\|\s*(.*)$/);
+    if (cell) { cell[1].split("||").forEach((part) => cells.push(part.trim())); current = cells.length - 1; continue; }
+    if (current >= 0 && line.trim()) cells[current] = `${cells[current]} ${line.trim()}`;
+  }
+  return rows;
+}
+
+function pushWikipediaRow(rows, cells) {
+  const no = cleanWikiText(cells[0]);
+  if (!/^\d+$/.test(no) || !cells[1]) return;
+  rows.push({ no, title: cleanWikiText(cells[1]), sender: cleanWikiText(cells[2]), date: cleanWikiText(cells[3]), investigator: cleanWikiText(cells[4]), notes: cleanWikiText(cells[8] || "") });
+}
+
+function cleanWikiText(value) { return String(value || "").replace(/<br\s*\/?>([\s\S])*$/i, "").replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1").replace(/'''?/g, "").replace(/<[^>]+>/g, "").trim(); }
+function slugify(value) { return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48); }
 
 async function episodeDetail(episodeId, env, headers) {
   const episode = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog WHERE id = ?1").bind(episodeId).first();
