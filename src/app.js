@@ -170,6 +170,11 @@ function renderFilteredEpisodes() {
   const query = document.querySelector("#episode-search").value.trim().toLocaleLowerCase("de-DE");
   const filtered = allEpisodes.filter((episode) => [episode.id, episode.title, episode.team, episode.investigator, episode.location, episode.airDate]
     .join(" ").toLocaleLowerCase("de-DE").includes(query));
+  filtered.sort((left, right) => {
+    const leftNumber = Number.parseInt(left.id, 10) || 0;
+    const rightNumber = Number.parseInt(right.id, 10) || 0;
+    return leftNumber - rightNumber || left.title.localeCompare(right.title, "de");
+  });
   document.querySelector("#episode-list").replaceChildren(...filtered.map(renderEpisode));
   document.querySelector("#episodes-status").textContent = `${filtered.length.toLocaleString("de-DE")} Folgen.`;
 }
