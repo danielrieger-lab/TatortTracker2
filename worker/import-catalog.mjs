@@ -1,14 +1,20 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const catalog = JSON.parse(readFileSync(new URL("../data/tatort-episodes.json", import.meta.url), "utf8").replace(/^\uFEFF/, ""));
 const escapeSql = (value) => String(value ?? "").replaceAll("'", "''");
 const wrangler = resolve("node_modules/.bin/wrangler.cmd");
+const seenIds = new Set();
+const slugify = (value) => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
 
-for (let offset = 0; offset < catalog.length; offset += 20) {
-  const rows = catalog.slice(offset, offset + 20).map((episode) => [
-    episode.no,
+for (let offset = 0; offset < catalog.length; offset += 50) {
+  const rows = catalog.slice(offset, offset + 50).map((episode) => {
+    const baseId = String(episode.no);
+    const id = seenIds.has(baseId) ? `${baseId}-${slugify(episode.title)}` : baseId;
+    seenIds.add(baseId);
+    return [
+    id,
     episode.title,
     episode.sender,
     episode.date,
@@ -16,12 +22,16 @@ for (let offset = 0; offset < catalog.length; offset += 20) {
     episode.location,
     episode.besonderheiten,
     "[]",
-  ].map(escapeSql));
+  ].map(escapeSql);
+  });
   const values = rows.map((row) => `('${row.join("','")}')`).join(",");
-  const sql = `INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES ${values};`;
+  const sql = `INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES ${values};\n`;
+  const filePath = resolve(`.wrangler-catalog-${offset}.sql`);
+  writeFileSync(filePath, sql, "utf8");
   const command = process.platform === "win32" ? "cmd.exe" : wrangler;
-  const args = process.platform === "win32" ? ["/d", "/s", "/c", wrangler, "d1", "execute", "tatorttracker-db", "--remote", "--command", sql] : ["d1", "execute", "tatorttracker-db", "--remote", "--command", sql];
+  const args = process.platform === "win32" ? ["/d", "/s", "/c", wrangler, "d1", "execute", "tatorttracker-db", "--remote", "--file", filePath] : ["d1", "execute", "tatorttracker-db", "--remote", "--file", filePath];
   const result = spawnSync(command, args, { stdio: "inherit" });
+  unlinkSync(filePath);
   if (result.error) console.error(result.error);
   if (result.status !== 0) process.exit(result.status || 1);
 }
