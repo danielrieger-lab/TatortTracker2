@@ -90,6 +90,15 @@
         </form>
         <p id="report-status" class="form-status" role="status"></p>
       </section>
+      <section id="admin-panel" class="panel admin-panel" aria-labelledby="admin-title" hidden>
+        <p class="eyebrow">Moderation</p>
+        <div class="panel-heading">
+          <h2 id="admin-title">Meldungen</h2>
+          <button id="refresh-reports" class="secondary-button" type="button">Aktualisieren</button>
+        </div>
+        <p id="admin-status" class="form-status" role="status"></p>
+        <ul id="report-list" class="report-list"></ul>
+      </section>
     </main>
     <script type="module" src="src/app.js"></script>
   </body>

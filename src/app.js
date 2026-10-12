@@ -6,6 +6,8 @@ const pinNote = document.querySelector("#pin-note");
 const accountPanel = document.querySelector("#account-panel");
 const accountName = document.querySelector("#account-name");
 const accountCode = document.querySelector("#account-code");
+const adminPanel = document.querySelector("#admin-panel");
+const reportList = document.querySelector("#report-list");
 let authMode = "login";
 
 async function request(path, options = {}) {
@@ -21,11 +23,61 @@ async function request(path, options = {}) {
 
 function showUser(user) {
   accountPanel.hidden = !user;
+  adminPanel.hidden = !user?.isAdmin;
   if (user) {
     accountName.textContent = user.username;
     accountCode.textContent = user.friendCode;
+    if (user.isAdmin) loadReports();
   }
 }
+
+async function loadReports() {
+  const status = document.querySelector("#admin-status");
+  status.textContent = "Wird geladen ...";
+  try {
+    const data = await request("/admin/reports");
+    reportList.replaceChildren(...data.reports.map(renderReport));
+    status.textContent = data.reports.length ? "" : "Keine Meldungen.";
+  } catch (error) {
+    status.textContent = error.message;
+  }
+}
+
+function renderReport(report) {
+  const item = document.createElement("li");
+  item.className = "report-item";
+  const text = document.createElement("p");
+  text.textContent = `${report.targetType} ${report.targetId}: ${report.reason} (${report.reporter})`;
+  const resolve = document.createElement("button");
+  resolve.className = "secondary-button";
+  resolve.type = "button";
+  resolve.textContent = report.status === "resolved" ? "Erledigt" : "Erledigen";
+  resolve.disabled = report.status === "resolved";
+  resolve.addEventListener("click", async () => {
+    await updateReportStatus(report.id, "resolved");
+  });
+  const dismiss = document.createElement("button");
+  dismiss.className = "quiet-button";
+  dismiss.type = "button";
+  dismiss.textContent = "Verwerfen";
+  dismiss.disabled = report.status === "dismissed";
+  dismiss.addEventListener("click", async () => {
+    await updateReportStatus(report.id, "dismissed");
+  });
+  item.append(text, resolve, dismiss);
+  return item;
+}
+
+async function updateReportStatus(id, status) {
+  try {
+    await request(`/admin/reports/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    await loadReports();
+  } catch (error) {
+    document.querySelector("#admin-status").textContent = error.message;
+  }
+}
+
+document.querySelector("#refresh-reports").addEventListener("click", loadReports);
 
 document.querySelectorAll("[data-mode]").forEach((button) => {
   button.addEventListener("click", () => {

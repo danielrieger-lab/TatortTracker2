@@ -108,12 +108,12 @@ async function login(request, env, headers) {
   const body = await readJson(request);
   const username = cleanUsername(body.username);
   const pin = cleanPin(body.pin);
-  const user = await env.DB.prepare("SELECT id, username, friend_code, pin_hash FROM users WHERE username_normalized = ?1")
+  const user = await env.DB.prepare("SELECT id, username, friend_code, pin_hash, is_admin FROM users WHERE username_normalized = ?1")
     .bind(username.toLowerCase()).first();
   if (!user || !(await verifyPin(pin, user.pin_hash))) {
     return json({ error: "Invalid username or PIN." }, 401, headers);
   }
-  return createSessionResponse(user.id, { id: user.id, username: user.username, friendCode: user.friend_code }, env, headers, 200);
+  return createSessionResponse(user.id, { id: user.id, username: user.username, friendCode: user.friend_code, isAdmin: Boolean(user.is_admin) }, env, headers, 200);
 }
 
 async function logout(request, env, headers) {
