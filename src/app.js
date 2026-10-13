@@ -156,7 +156,12 @@ function openEpisodeModal(episode) {
     for (let value = 1; value <= 5; value += 1) {
       const star = document.createElement("button"); star.type = "button"; star.className = "star-button"; star.setAttribute("aria-label", `${value} Sterne`); star.dataset.value = value;
       const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", `url("assets/icons/${encodeURI(iconFile)}")`); star.append(icon);
-      star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => item.classList.toggle("filled", index < value)); updateOverall(); });
+      star.addEventListener("click", () => {
+        const nextValue = Number(stars.dataset.value || 0) === value ? 0 : value;
+        stars.dataset.value = nextValue;
+        [...stars.children].forEach((item, index) => item.classList.toggle("filled", index < nextValue));
+        updateOverall();
+      });
       stars.append(star);
     }
     stars.dataset.field = field; stars.dataset.value = "0";
@@ -335,7 +340,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=12", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=13", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }
