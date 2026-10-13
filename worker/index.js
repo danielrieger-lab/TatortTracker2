@@ -244,7 +244,8 @@ async function saveRating(request, env, headers) {
     watchCount: cleanCount(body.watchCount), favoriteCharacter: cleanText(body.favoriteCharacter, 120),
     leastFavoriteCharacter: cleanText(body.leastFavoriteCharacter, 120), notes: cleanText(body.notes, 1000),
   };
-  if (!episodeId || !Number.isInteger(score) || score < 1 || score > 10 || Object.values(details).some((value) => value === null)) {
+  const requiredRatings = [details.fallQuality, details.teamRating, details.directionRating, details.tension, details.scary, details.watchCount];
+  if (!episodeId || !Number.isInteger(score) || score < 1 || score > 10 || requiredRatings.some((value) => value === null)) {
     return json({ error: "Episode and a score from 1 to 10 are required." }, 400, headers);
   }
   await env.DB.prepare("INSERT INTO ratings (user_id, episode_id, score, fall_quality, team_rating, direction_rating, tension, scary, watched_date, watch_count, favorite_character, least_favorite_character, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) ON CONFLICT(user_id, episode_id) DO UPDATE SET score = excluded.score, fall_quality = excluded.fall_quality, team_rating = excluded.team_rating, direction_rating = excluded.direction_rating, tension = excluded.tension, scary = excluded.scary, watched_date = excluded.watched_date, watch_count = excluded.watch_count, favorite_character = excluded.favorite_character, least_favorite_character = excluded.least_favorite_character, notes = excluded.notes, updated_at = CURRENT_TIMESTAMP")
