@@ -40,6 +40,9 @@ export default {
       if (episodeMatch && request.method === "GET") {
         return episodeActivity(episodeMatch[1], env, headers);
       }
+      if (url.pathname === "/api/ratings" && request.method === "GET") {
+        return listRatings(request, env, headers);
+      }
       if (url.pathname === "/api/ratings" && request.method === "POST") {
         return saveRating(request, env, headers);
       }
@@ -233,6 +236,13 @@ async function statistics(request, env, headers) {
     group.total += Number(item.score || 0); group.count += 1; result[label] = group; return result;
   }, {})).map((group) => ({ label: group.label, score: Number((group.total / group.count).toFixed(1)), count: group.count })).sort((a, b) => b.score - a.score).slice(0, 10);
   return json({ overview: { rated: ratings.length, watched: ratings.filter((item) => Number(item.watchCount) > 0).length, average: average("score") }, categories: { fallQuality: average("fallQuality"), team: average("teamRating"), direction: average("directionRating"), tension: average("tension"), scary: average("scary") }, best: rank("score"), worst: rank("score").reverse(), scary: rank("scary"), teams: groups("team"), cities: groups("location") }, 200, headers);
+}
+
+async function listRatings(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const rows = await env.DB.prepare("SELECT episode_id AS episodeId, score, fall_quality AS fallQuality, team_rating AS teamRating, direction_rating AS directionRating, tension, scary, watched_date AS watchedDate, watch_count AS watchCount, favorite_character AS favoriteCharacter, least_favorite_character AS leastFavoriteCharacter, notes FROM ratings WHERE user_id = ?1").bind(user.id).all();
+  return json({ ratings: rows.results || [] }, 200, headers);
 }
 
 async function saveRating(request, env, headers) {

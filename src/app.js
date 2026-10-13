@@ -11,6 +11,7 @@ const adminPanel = document.querySelector("#admin-panel");
 const reportList = document.querySelector("#report-list");
 const authPanel = document.querySelector("#auth-panel");
 let authMode = "login";
+let ratingsByEpisode = new Map();
 const EPISODE_CACHE_KEY = "tatorttracker.episodes.v1";
 const REVIEW_DRAFT_KEY = "tatorttracker.review-draft.v1";
 const FULL_CATALOG_SOURCE = "data/tatort-episodes.json";
@@ -39,6 +40,17 @@ function showUser(user) {
     accountName.textContent = user.username;
     accountCode.textContent = user.friendCode;
     if (user.isAdmin) loadReports();
+    loadRatings();
+  }
+}
+
+async function loadRatings() {
+  try {
+    const data = await request("/ratings");
+    ratingsByEpisode = new Map(data.ratings.map((rating) => [String(rating.episodeId), rating]));
+    renderFilteredEpisodes();
+  } catch {
+    ratingsByEpisode = new Map();
   }
 }
 
@@ -93,6 +105,7 @@ document.querySelector("#refresh-reports").addEventListener("click", loadReports
 function renderEpisode(episode) {
   const item = document.createElement("li");
   item.className = "episode-card";
+  if (ratingsByEpisode.has(String(episode.id))) item.classList.add("viewed");
   item.setAttribute("role", "button");
   item.setAttribute("tabindex", "0");
   const line = document.createElement("p");
@@ -133,6 +146,7 @@ function openEpisodeModal(episode) {
   const synopsis = document.createElement("p"); synopsis.textContent = episode.synopsis; body.append(synopsis);
   const form = document.createElement("form");
   form.className = "rating-area";
+  const savedRating = ratingsByEpisode.get(String(episode.id)) || {};
   const ratingFields = [["fallQuality", "Fallqualität", "fallqualität.svg"], ["teamRating", "Team", "team.svg"], ["directionRating", "Inszenierung", "inszenierung.svg"], ["tension", "Spannung", "spannung.svg"], ["scary", "gruselig (Kissenfaktor)", "gruselig.svg"]];
   const mainRatingFields = new Set(["fallQuality", "teamRating", "directionRating", "tension"]);
   const overallRow = document.createElement("div"); overallRow.className = "rating-row general-rating";
@@ -170,13 +184,17 @@ function openEpisodeModal(episode) {
       stars.append(star);
     }
     stars.dataset.field = field; stars.dataset.value = "0";
+    const savedValue = Number(savedRating[field] || 0);
+    const selectedValue = Math.round(savedValue / 2);
+    stars.dataset.value = String(selectedValue);
+    [...stars.children].forEach((item, index) => item.classList.toggle("filled", index < selectedValue));
     row.append(text, stars); form.append(row);
   }
   updateOverall();
   const topFields = document.createElement("div"); topFields.className = "rating-row top-fields";
-  for (const [id, label, type] of [["watchedDate", "zuerst gesehen", "date"], ["watchCount", "Anzahl gesehen", "number"]]) { const field = document.createElement("div"); field.className = "top-field"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = type; input.className = type === "date" ? "top-date-input" : "top-count-input"; input.min = type === "number" ? "1" : ""; input.value = type === "number" ? "1" : ""; field.append(text, input); topFields.append(field); } form.append(topFields);
-  for (const [id, label] of [["favoriteCharacter", "most loved Charakter"], ["leastFavoriteCharacter", "most hated Charakter"]]) { const row = document.createElement("div"); row.className = "rating-row character-row"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = "text"; input.className = "character-input"; input.placeholder = "keine Auswahl"; row.append(text, input); form.append(row); }
-  const notesRow = document.createElement("div"); notesRow.className = "rating-row besonderheiten-row"; const notesLabel = document.createElement("span"); notesLabel.className = "rating-label"; notesLabel.textContent = "Besonderheiten"; const notes = document.createElement("textarea"); notes.id = "modal-notes"; notes.name = "notes"; notes.placeholder = "Notizen eingeben"; notes.rows = 3; notes.className = "besonderheiten-text"; notesRow.append(notesLabel, notes); form.append(notesRow);
+  for (const [id, label, type] of [["watchedDate", "zuerst gesehen", "date"], ["watchCount", "Anzahl gesehen", "number"]]) { const field = document.createElement("div"); field.className = "top-field"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = type; input.className = type === "date" ? "top-date-input" : "top-count-input"; input.min = type === "number" ? "1" : ""; input.value = savedRating[id] ?? (type === "number" ? "1" : ""); field.append(text, input); topFields.append(field); } form.append(topFields);
+  for (const [id, label] of [["favoriteCharacter", "most loved Charakter"], ["leastFavoriteCharacter", "most hated Charakter"]]) { const row = document.createElement("div"); row.className = "rating-row character-row"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = "text"; input.className = "character-input"; input.placeholder = "keine Auswahl"; input.value = savedRating[id] || ""; row.append(text, input); form.append(row); }
+  const notesRow = document.createElement("div"); notesRow.className = "rating-row besonderheiten-row"; const notesLabel = document.createElement("span"); notesLabel.className = "rating-label"; notesLabel.textContent = "Besonderheiten"; const notes = document.createElement("textarea"); notes.id = "modal-notes"; notes.name = "notes"; notes.placeholder = "Notizen eingeben"; notes.rows = 3; notes.className = "besonderheiten-text"; notes.value = savedRating.notes || ""; notesRow.append(notesLabel, notes); form.append(notesRow);
   const commentRow = document.createElement("div"); commentRow.className = "rating-row kommentar-row"; const commentLabel = document.createElement("span"); commentLabel.className = "rating-label"; commentLabel.textContent = "Kommentare"; const comment = document.createElement("textarea"); comment.id = "modal-comment"; comment.placeholder = "Kommentar eingeben"; comment.rows = 3; comment.className = "kommentar-input"; commentRow.append(commentLabel, comment); form.append(commentRow);
   const save = document.createElement("button"); save.className = "primary-button"; save.type = "submit"; save.textContent = "Bewertung speichern"; form.append(save);
   const status = document.createElement("p"); status.className = "form-status"; status.setAttribute("role", "status"); form.append(status);
@@ -187,7 +205,7 @@ function openEpisodeModal(episode) {
     const apiValue = (value) => value ? value * 2 : 5;
     const apiValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, apiValue(value)]));
     const payload = { episodeId: episode.id, score: Math.round(total * 2) || 5, ...apiValues, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: notes.value };
-    try { await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); status.textContent = "Bewertung gespeichert."; } catch (error) { status.textContent = error.message; }
+    try { const saved = await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); ratingsByEpisode.set(String(episode.id), saved); renderFilteredEpisodes(); status.textContent = "Bewertung gespeichert."; if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); } catch (error) { status.textContent = error.message; }
   });
   body.append(form);
   if (episode.roles.length) {
