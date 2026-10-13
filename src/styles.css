@@ -8,10 +8,12 @@ body {
   margin: 0;
   min-width: 320px;
   background: #000000;
+  overflow-x: hidden;
 }
 
 .shell {
   width: min(100% - 32px, 1120px);
+  min-width: 0;
   margin: 0 auto;
   padding: 24px 0 136px;
 }
@@ -54,6 +56,7 @@ h1 {
 .stats-back { display: inline-block; margin-top: 28px; text-decoration: none; }
 
 .panel {
+  min-width: 0;
   max-width: 1120px;
   margin-top: 16px;
   padding: 24px;
@@ -101,16 +104,16 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .episode-modal { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px; }
 .episode-modal[hidden] { display: none; }
 .episode-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.78); }
-.episode-modal-dialog { position: relative; width: min(920px, calc(100% - 24px)); max-height: min(82vh, 900px); overflow: hidden; margin: 8vh auto 0; padding: 18px; border: 1px solid rgba(255,255,255,0.18); border-radius: 18px; background: rgba(53, 24, 90, 0.98); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.episode-modal-dialog { position: relative; width: min(920px, calc(100% - 24px)); min-width: 0; max-height: min(82vh, 900px); overflow: hidden; margin: 8vh auto 0; padding: 18px; border: 1px solid rgba(255,255,255,0.18); border-radius: 18px; background: rgba(53, 24, 90, 0.98); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 .modal-close { position: absolute; top: 18px; right: 18px; }
-.modal-body { max-height: calc(min(82vh, 900px) - 80px); overflow: auto; color: #d8dfd4; font: 0.95rem/1.5 sans-serif; }
+.modal-body { max-width: 100%; max-height: calc(min(82vh, 900px) - 80px); overflow: auto; color: #d8dfd4; font: 0.95rem/1.5 sans-serif; }
 .modal-body h3 { color: #ffffff; font-family: "Futura Black", sans-serif; }
 .modal-body li { margin-bottom: 4px; }
-.rating-area { margin: 16px 0; border-top: 1px solid rgba(255,255,255,0.22); border-bottom: 1px solid rgba(255,255,255,0.22); padding: 12px 0; display: grid; gap: 8px; }
+.rating-area { width: 100%; max-width: 100%; min-width: 0; margin: 16px 0; border-top: 1px solid rgba(255,255,255,0.22); border-bottom: 1px solid rgba(255,255,255,0.22); padding: 12px 0; display: grid; gap: 8px; }
 .rating-area .rating-row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 4px 0; }
 .rating-area .rating-label { font-family: "Futura Light", "Futura", sans-serif; }
 .rating-area .general-rating .rating-label { font-family: "Futura Black", "Futura", sans-serif; }
-.stars { display: inline-flex; align-items: center; gap: 4px; width: 126px; justify-content: flex-start; }
+.stars { display: inline-flex; align-items: center; gap: 4px; width: min(126px, 100%); max-width: 100%; justify-content: flex-start; }
 .rating-icon { width: 20px; height: 20px; display: inline-block; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.32; transition: transform 0.16s ease, opacity 0.16s ease; }
 .rating-icon.filled, .star-button.filled .rating-icon { filter: brightness(0) invert(1); transform: scale(1.1); opacity: 1; }
 .rating-icon-fallback { display: inline-block; width: 20px; color: #ffffff; font-size: 20px; line-height: 20px; text-align: center; }
@@ -139,9 +142,21 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 560px) {
-  .shell { padding: 48px 0; }
-  .hero h1 { font-size: 3.5rem; }
+  .shell { width: calc(100% - 20px); padding: 32px 0 96px; }
+  .hero h1 { max-width: 100%; font-size: clamp(2rem, 11vw, 2.6rem); overflow-wrap: anywhere; }
+  .hero .intro { max-width: 100%; font-size: 1rem; }
   .panel { margin-top: 56px; }
+  .panel { padding: 16px; }
+  .episode-modal { padding: 8px; }
+  .episode-modal-dialog { width: 100%; max-height: 90vh; margin: 4vh auto 0; padding: 14px; border-radius: 12px; }
+  .modal-close { top: 12px; right: 12px; }
+  .modal-body { max-height: calc(90vh - 64px); font-size: 0.88rem; }
+  .modal-body h2 { max-width: calc(100% - 72px); overflow-wrap: anywhere; font-size: 1.35rem; }
+  .rating-area { margin: 12px 0; padding: 10px 0; gap: 6px; }
+  .rating-area .rating-row { gap: 6px; }
+  .rating-area .rating-label { max-width: 100%; font-size: 0.88rem; overflow-wrap: anywhere; }
+  .rating-area .top-fields { width: 100%; }
+  .rating-area input, .rating-area textarea { max-width: 100%; font-size: 0.9rem; }
   .finder-form { grid-template-columns: 1fr; }
   .finder-form input { max-width: none; }
   .stats-grid { grid-template-columns: 1fr; }
