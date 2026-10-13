@@ -136,13 +136,10 @@ function openEpisodeModal(episode) {
   const overallRow = document.createElement("div"); overallRow.className = "rating-row general-rating";
   const overallLabel = document.createElement("span"); overallLabel.className = "rating-label"; overallLabel.textContent = "Gesamtbewertung";
   const overallValue = document.createElement("span"); overallValue.className = "rating-value"; overallValue.textContent = "0.0/5";
-  const overallStars = document.createElement("span"); overallStars.className = "stars";
+  const overallStars = document.createElement("span"); overallStars.className = "stars overall-stars";
   for (let value = 1; value <= 5; value += 1) {
     const star = document.createElement("span"); star.className = "star-button";
-    const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = "assets/icons/episode.svg";
-    const fallback = document.createElement("span"); fallback.className = "rating-icon-fallback"; fallback.textContent = "★";
-    icon.addEventListener("load", () => { fallback.hidden = true; });
-    star.append(icon, fallback); overallStars.append(star);
+    star.textContent = "★"; overallStars.append(star);
   }
   overallRow.append(overallLabel, overallValue, overallStars); form.append(overallRow);
   const updateOverall = () => {
@@ -346,7 +343,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=15", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=16", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }

@@ -111,10 +111,12 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .rating-area .rating-label { font-family: "Futura Light", "Futura", sans-serif; }
 .rating-area .general-rating .rating-label { font-family: "Futura Black", "Futura", sans-serif; }
 .stars { display: inline-flex; align-items: center; gap: 4px; width: 126px; justify-content: flex-start; }
-.rating-icon { width: 20px; height: 20px; display: inline-block; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.78; transition: transform 0.16s ease, opacity 0.16s ease; }
+.rating-icon { width: 20px; height: 20px; display: inline-block; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.32; transition: transform 0.16s ease, opacity 0.16s ease; }
 .rating-icon.filled, .star-button.filled .rating-icon { filter: brightness(0) invert(1); transform: scale(1.1); opacity: 1; }
 .rating-icon-fallback { display: inline-block; width: 20px; color: #ffffff; font-size: 20px; line-height: 20px; text-align: center; }
 .rating-icon-fallback[hidden], .rating-icon[hidden] { display: none; }
+.overall-stars .star-button { color: #ffffff; font-size: 20px; line-height: 1; opacity: 0.32; }
+.overall-stars .star-button.filled { opacity: 1; transform: scale(1.1); }
 .rating-value { font-size: 0.88rem; opacity: 0.9; }
 .star-button { border: 0; background: transparent; width: 22px; height: 22px; padding: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .rating-area .top-field { display: grid; gap: 6px; }
