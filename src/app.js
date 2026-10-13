@@ -126,7 +126,7 @@ function renderEpisode(episode) {
 function normalizeCatalogEpisode(episode) {
   return {
     id: String(episode.id || episode.no),
-    title: episode.title,
+    title: cleanEpisodeTitle(episode.title),
     team: episode.team || episode.ermittler || "",
     investigator: episode.ermittler || episode.investigator || "",
     airDate: episode.airDate || episode.date || "",
@@ -135,6 +135,10 @@ function normalizeCatalogEpisode(episode) {
     sender: episode.sender || "",
     roles: Array.isArray(episode.roles) ? episode.roles : [],
   };
+}
+
+function cleanEpisodeTitle(title) {
+  return String(title || "").replace(/^\s*Tatort\s*:\s*/i, "").trim();
 }
 
 function openEpisodeModal(episode) {

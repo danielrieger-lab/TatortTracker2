@@ -165,7 +165,7 @@ async function episodeActivity(episodeId, env, headers) {
 
 async function listEpisodes(env, headers) {
   const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
-  return json({ episodes: episodes.results || [] }, 200, headers);
+  return json({ episodes: (episodes.results || []).map((episode) => ({ ...episode, title: cleanEpisodeTitle(episode.title) })) }, 200, headers);
 }
 
 async function manualEpisodeSync(request, env, headers) {
@@ -190,11 +190,12 @@ async function syncEpisodes(env) {
   }
   const statements = rows.map((row) => {
     const baseId = String(row.no);
-    const candidate = byId.get(baseId) && byId.get(baseId) !== row.title ? `${baseId}-${slugify(row.title)}` : baseId;
-    byId.set(candidate, row.title);
+    const title = cleanEpisodeTitle(row.title);
+    const candidate = byId.get(baseId) && byId.get(baseId) !== title ? `${baseId}-${slugify(title)}` : baseId;
+    byId.set(candidate, title);
     const knownLocation = locationsByTeam.get(normalizeTeamKey(row.investigator)) || "";
     return env.DB.prepare("INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES (?1, ?2, ?3, ?4, ?5, COALESCE(NULLIF((SELECT location FROM episode_catalog WHERE id = ?1), ''), ?6), ?7, COALESCE((SELECT roles_json FROM episode_catalog WHERE id = ?1), '[]'))")
-      .bind(candidate, row.title, row.sender, row.date, row.investigator, knownLocation, row.notes);
+      .bind(candidate, title, row.sender, row.date, row.investigator, knownLocation, row.notes);
   });
   for (let index = 0; index < statements.length; index += 50) await env.DB.batch(statements.slice(index, index + 50));
   return { ok: true, synced: rows.length };
@@ -223,6 +224,7 @@ function pushWikipediaRow(rows, cells) {
 
 function cleanWikiText(value) { return String(value || "").replace(/<br\s*\/?>([\s\S])*$/i, "").replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1").replace(/'''?/g, "").replace(/<[^>]+>/g, "").trim(); }
 function slugify(value) { return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48); }
+function cleanEpisodeTitle(value) { return String(value || "").replace(/^\s*Tatort\s*:\s*/i, "").trim(); }
 function normalizeTeamKey(value) { return String(value || "").toLocaleLowerCase("de-DE").replace(/Ã¤/g, "ä").replace(/Ã¶/g, "ö").replace(/Ã¼/g, "ü").replace(/[^a-zäöüß0-9]+/g, " ").replace(/\b(kommissar|oberinspektor|hauptkommissar|tatort)\b/g, "").replace(/\s+/g, " ").trim(); }
 
 async function episodeDetail(episodeId, env, headers) {
