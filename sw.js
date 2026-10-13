@@ -1,4 +1,4 @@
-const CACHE_NAME = "tatorttracker2-v16";
+const CACHE_NAME = "tatorttracker2-v17";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest", "./src/app.js", "./src/styles.css",
   "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2",
@@ -18,5 +18,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const isAppShell = ["document", "script", "style"].includes(event.request.destination);
+  if (isAppShell) {
+    event.respondWith(fetch(event.request).then((response) => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      return response;
+    }).catch(() => caches.match(event.request)));
+    return;
+  }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
 });
