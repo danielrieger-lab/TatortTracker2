@@ -164,8 +164,12 @@ async function episodeActivity(episodeId, env, headers) {
 }
 
 async function listEpisodes(env, headers) {
-  const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
-  return json({ episodes: (episodes.results || []).map((episode) => ({ ...episode, title: cleanEpisodeTitle(episode.title) })) }, 200, headers);
+  const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis, roles_json AS rolesJson FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
+  return json({ episodes: (episodes.results || []).map((episode) => ({ ...episode, title: cleanEpisodeTitle(episode.title), roles: parseRoles(episode.rolesJson) })) }, 200, headers);
+}
+
+function parseRoles(value) {
+  try { const roles = JSON.parse(value || "[]"); return Array.isArray(roles) ? roles : []; } catch { return []; }
 }
 
 async function manualEpisodeSync(request, env, headers) {

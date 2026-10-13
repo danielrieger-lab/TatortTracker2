@@ -21,7 +21,7 @@ for (let offset = 0; offset < catalog.length; offset += 50) {
     episode.ermittler,
     episode.location,
     episode.besonderheiten,
-    "[]",
+    JSON.stringify(Array.isArray(episode.roles) ? episode.roles : []),
   ].map(escapeSql);
   });
   const values = rows.map((row) => `('${row.join("','")}')`).join(",");
@@ -29,7 +29,8 @@ for (let offset = 0; offset < catalog.length; offset += 50) {
   const filePath = resolve(`.wrangler-catalog-${offset}.sql`);
   writeFileSync(filePath, sql, "utf8");
   const command = process.platform === "win32" ? "cmd.exe" : wrangler;
-  const args = process.platform === "win32" ? ["/d", "/s", "/c", wrangler, "d1", "execute", "tatorttracker-db", "--remote", "--file", filePath] : ["d1", "execute", "tatorttracker-db", "--remote", "--file", filePath];
+  const commandLine = `echo y|${wrangler} d1 execute tatorttracker-db --remote --file ${filePath}`;
+  const args = process.platform === "win32" ? ["/d", "/s", "/c", commandLine] : ["d1", "execute", "tatorttracker-db", "--remote", "--file", filePath];
   const result = spawnSync(command, args, { stdio: "inherit" });
   unlinkSync(filePath);
   if (result.error) console.error(result.error);
