@@ -139,7 +139,7 @@ function openEpisodeModal(episode) {
   const overallStars = document.createElement("span"); overallStars.className = "stars";
   for (let value = 1; value <= 5; value += 1) {
     const star = document.createElement("span"); star.className = "star-button";
-    const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", 'url("assets/icons/episode.svg")');
+    const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = "assets/icons/episode.svg";
     star.append(icon); overallStars.append(star);
   }
   overallRow.append(overallLabel, overallValue, overallStars); form.append(overallRow);
@@ -155,7 +155,10 @@ function openEpisodeModal(episode) {
     const stars = document.createElement("span"); stars.className = "stars interactive";
     for (let value = 1; value <= 5; value += 1) {
       const star = document.createElement("button"); star.type = "button"; star.className = "star-button"; star.setAttribute("aria-label", `${value} Sterne`); star.dataset.value = value;
-      const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", `url("assets/icons/${encodeURI(iconFile)}")`); star.append(icon);
+      const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = `assets/icons/${encodeURI(iconFile)}`;
+      const fallback = document.createElement("span"); fallback.className = "rating-icon-fallback"; fallback.textContent = "★"; fallback.hidden = true;
+      icon.addEventListener("error", () => { icon.hidden = true; fallback.hidden = false; });
+      star.append(icon, fallback);
       star.addEventListener("click", () => {
         const nextValue = Number(stars.dataset.value || 0) === value ? 0 : value;
         stars.dataset.value = nextValue;
@@ -340,7 +343,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=13", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=14", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }
