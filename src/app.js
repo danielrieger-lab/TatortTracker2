@@ -341,7 +341,10 @@ document.querySelector("#report-form").addEventListener("submit", async (event) 
   }
 });
 
-request("/me").then((data) => showUser(data.user)).catch(() => showUser(null));
+request("/me").then((data) => {
+  if (data.token) localStorage.setItem(SESSION_TOKEN_KEY, data.token);
+  showUser(data.user);
+}).catch(() => showUser(null));
 loadEpisodes();
 
 if ("serviceWorker" in navigator) {

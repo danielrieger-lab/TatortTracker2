@@ -134,7 +134,8 @@ async function login(request, env, headers) {
 }
 
 async function logout(request, env, headers) {
-  const token = getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   if (token) await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?1").bind(await digest(token)).run();
   headers.set("Set-Cookie", clearCookie());
   return json({ ok: true }, 200, headers);
@@ -143,7 +144,9 @@ async function logout(request, env, headers) {
 async function me(request, env, headers) {
   const user = await authenticatedUser(request, env);
   if (!user) return json({ user: null }, 200, headers);
-  return json({ user }, 200, headers);
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
+  return json({ user, token }, 200, headers);
 }
 
 async function findByCode(code, env, headers) {
@@ -357,7 +360,7 @@ async function createSessionResponse(userId, user, env, headers, status) {
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000).toISOString();
   await env.DB.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3)")
     .bind(await digest(token), userId, expiresAt).run();
-  headers.set("Set-Cookie", `${SESSION_COOKIE}=${token}; Max-Age=${SESSION_DAYS * 86400}; Path=/; HttpOnly; Secure; SameSite=Lax`);
+  headers.set("Set-Cookie", `${SESSION_COOKIE}=${token}; Max-Age=${SESSION_DAYS * 86400}; Path=/; HttpOnly; Secure; SameSite=None`);
   return json({ user, token }, status, headers);
 }
 
