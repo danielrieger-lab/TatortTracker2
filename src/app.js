@@ -138,7 +138,11 @@ function openEpisodeModal(episode) {
     const stars = document.createElement("span"); stars.className = "stars interactive";
     for (let value = 1; value <= 5; value += 1) {
       const star = document.createElement("button"); star.type = "button"; star.className = "star-button"; star.setAttribute("aria-label", `${value} Sterne`); star.dataset.value = value;
-      const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = `assets/icons/${encodeURI(iconFile)}`; icon.addEventListener("error", () => { icon.replaceWith(Object.assign(document.createElement("span"), { className: "rating-icon-fallback", textContent: "★" })); }); star.append(icon);
+      const fallback = document.createElement("span"); fallback.className = "rating-icon-fallback"; fallback.textContent = "★"; star.append(fallback);
+      const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = `assets/icons/${encodeURI(iconFile)}`;
+      icon.addEventListener("load", () => fallback.hidden = true);
+      icon.addEventListener("error", () => icon.remove());
+      star.append(icon);
       star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => { item.classList.toggle("filled", index < value); item.firstChild.classList.toggle("filled", index < value); }); });
       stars.append(star);
     }
@@ -314,7 +318,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=9", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=11", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }

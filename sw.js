@@ -1,7 +1,9 @@
-const CACHE_NAME = "tatorttracker2-v9";
+const CACHE_NAME = "tatorttracker2-v11";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest", "./src/app.js", "./src/styles.css",
-  "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2"
+  "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2",
+  "./assets/icons/episode.svg", "./assets/icons/fallqualität.svg", "./assets/icons/team.svg",
+  "./assets/icons/inszenierung.svg", "./assets/icons/spannung.svg", "./assets/icons/gruselig.svg"
 ];
 
 self.addEventListener("install", (event) => {
