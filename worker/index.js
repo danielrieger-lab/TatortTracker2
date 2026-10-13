@@ -343,7 +343,9 @@ async function updateReport(id, request, env, headers) {
 }
 
 async function authenticatedUser(request, env) {
-  const token = getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
+  const authorization = request.headers.get("Authorization") || "";
+  const bearer = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  const token = bearer || getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   if (!token) return null;
   const row = await env.DB.prepare("SELECT users.id, users.username, users.friend_code, users.is_admin FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND sessions.expires_at > datetime('now')")
     .bind(await digest(token)).first();
@@ -356,7 +358,7 @@ async function createSessionResponse(userId, user, env, headers, status) {
   await env.DB.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3)")
     .bind(await digest(token), userId, expiresAt).run();
   headers.set("Set-Cookie", `${SESSION_COOKIE}=${token}; Max-Age=${SESSION_DAYS * 86400}; Path=/; HttpOnly; Secure; SameSite=Lax`);
-  return json({ user }, status, headers);
+  return json({ user, token }, status, headers);
 }
 
 async function readJson(request) {
@@ -413,5 +415,5 @@ function timingSafeEqual(left, right) { return left.length === right.length && l
 async function digest(value) { return toBase64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)))); }
 function getCookie(header, name) { return header?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1) || ""; }
 function clearCookie() { return `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`; }
-function corsHeaders(origin) { return new Headers({ "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Content-Type": "application/json" }); }
+function corsHeaders(origin) { return new Headers({ "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Content-Type": "application/json" }); }
 function json(body, status, headers) { return new Response(JSON.stringify(body), { status, headers }); }

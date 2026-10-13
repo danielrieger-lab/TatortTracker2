@@ -1,4 +1,5 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
+const SESSION_TOKEN_KEY = "tatorttracker.session-token";
 const authForm = document.querySelector("#auth-form");
 const authSubmit = authForm.querySelector("button[type=submit]");
 const authStatus = document.querySelector("#auth-status");
@@ -16,9 +17,10 @@ const FULL_CATALOG_SOURCE = "data/tatort-episodes.json";
 let allEpisodes = [];
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem(SESSION_TOKEN_KEY);
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
     ...options,
   });
   const data = await response.json().catch(() => ({}));
@@ -259,6 +261,7 @@ authForm.addEventListener("submit", async (event) => {
   const form = new FormData(authForm);
   try {
     const data = await request(`/auth/${authMode}`, { method: "POST", body: JSON.stringify({ username: form.get("username"), pin: form.get("pin") }) });
+    if (data.token) localStorage.setItem(SESSION_TOKEN_KEY, data.token);
     showUser(data.user);
     authStatus.textContent = authMode === "login" ? "Willkommen zurück." : `Konto erstellt. Dein Freundescode ist ${data.user.friendCode}.`;
     authForm.reset();
@@ -313,7 +316,7 @@ async function updateSocial(path, userId, button, idleText, activeText, method =
 }
 
 document.querySelector("#logout-button").addEventListener("click", async () => {
-  await request("/auth/logout", { method: "POST" });
+  try { await request("/auth/logout", { method: "POST" }); } finally { localStorage.removeItem(SESSION_TOKEN_KEY); }
   showUser(null);
   authStatus.textContent = "Du bist abgemeldet.";
 });
