@@ -180,14 +180,21 @@ async function syncEpisodes(env) {
   const data = await response.json();
   const raw = data?.query?.pages?.[0]?.revisions?.[0]?.content || "";
   const rows = parseWikipediaEpisodes(raw);
-  const existing = await env.DB.prepare("SELECT id, title FROM episode_catalog").all();
-  const byId = new Map((existing.results || []).map((item) => [item.id, item.title]));
+  const existing = await env.DB.prepare("SELECT id, title, investigator, location FROM episode_catalog").all();
+  const existingRows = existing.results || [];
+  const byId = new Map(existingRows.map((item) => [item.id, item.title]));
+  const locationsByTeam = new Map();
+  for (const item of existingRows) {
+    const key = normalizeTeamKey(item.investigator);
+    if (key && item.location && !locationsByTeam.has(key)) locationsByTeam.set(key, item.location);
+  }
   const statements = rows.map((row) => {
     const baseId = String(row.no);
     const candidate = byId.get(baseId) && byId.get(baseId) !== row.title ? `${baseId}-${slugify(row.title)}` : baseId;
     byId.set(candidate, row.title);
-    return env.DB.prepare("INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES (?1, ?2, ?3, ?4, ?5, COALESCE((SELECT location FROM episode_catalog WHERE id = ?1), ''), ?6, COALESCE((SELECT roles_json FROM episode_catalog WHERE id = ?1), '[]'))")
-      .bind(candidate, row.title, row.sender, row.date, row.investigator, row.notes);
+    const knownLocation = locationsByTeam.get(normalizeTeamKey(row.investigator)) || "";
+    return env.DB.prepare("INSERT OR REPLACE INTO episode_catalog (id, title, sender, air_date, investigator, location, notes, roles_json) VALUES (?1, ?2, ?3, ?4, ?5, COALESCE(NULLIF((SELECT location FROM episode_catalog WHERE id = ?1), ''), ?6), ?7, COALESCE((SELECT roles_json FROM episode_catalog WHERE id = ?1), '[]'))")
+      .bind(candidate, row.title, row.sender, row.date, row.investigator, knownLocation, row.notes);
   });
   for (let index = 0; index < statements.length; index += 50) await env.DB.batch(statements.slice(index, index + 50));
   return { ok: true, synced: rows.length };
@@ -216,6 +223,7 @@ function pushWikipediaRow(rows, cells) {
 
 function cleanWikiText(value) { return String(value || "").replace(/<br\s*\/?>([\s\S])*$/i, "").replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1").replace(/'''?/g, "").replace(/<[^>]+>/g, "").trim(); }
 function slugify(value) { return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48); }
+function normalizeTeamKey(value) { return String(value || "").toLocaleLowerCase("de-DE").replace(/Ã¤/g, "ä").replace(/Ã¶/g, "ö").replace(/Ã¼/g, "ü").replace(/[^a-zäöüß0-9]+/g, " ").replace(/\b(kommissar|oberinspektor|hauptkommissar|tatort)\b/g, "").replace(/\s+/g, " ").trim(); }
 
 async function episodeDetail(episodeId, env, headers) {
   const episode = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis FROM episode_catalog WHERE id = ?1").bind(episodeId).first();

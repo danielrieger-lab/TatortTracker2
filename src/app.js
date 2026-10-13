@@ -235,7 +235,21 @@ async function loadEpisodes() {
   const list = document.querySelector("#episode-list");
   try {
     const data = await request("/episodes");
-    const onlineEpisodes = data.episodes.map(normalizeCatalogEpisode);
+    const localResponse = await fetch(`${FULL_CATALOG_SOURCE}?metadata=${Date.now()}`, { cache: "no-store" });
+    const localCatalog = await localResponse.json();
+    const localById = new Map();
+    for (const episode of localCatalog) {
+      const normalized = normalizeCatalogEpisode(episode);
+      const id = String(normalized.id);
+      localById.set(id, normalized);
+      const numericId = id.match(/^\d+/)?.[0];
+      if (numericId && !localById.has(numericId)) localById.set(numericId, normalized);
+    }
+    const onlineEpisodes = data.episodes.map((episode) => {
+      const normalized = normalizeCatalogEpisode(episode);
+      const local = localById.get(normalized.id) || localById.get(normalized.id.match(/^\d+/)?.[0]);
+      return local ? { ...normalized, team: normalized.team || local.team, investigator: normalized.investigator || local.investigator, location: normalized.location || local.location } : normalized;
+    });
     if (onlineEpisodes.length < 1000) {
       throw new Error("Online catalog is incomplete");
     }
