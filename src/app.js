@@ -131,24 +131,38 @@ function openEpisodeModal(episode) {
   const synopsis = document.createElement("p"); synopsis.textContent = episode.synopsis; body.append(synopsis);
   const form = document.createElement("form");
   form.className = "rating-area";
-  const ratingFields = [["score", "Gesamtbewertung", "episode.svg"], ["fallQuality", "Fallqualität", "fallqualität.svg"], ["teamRating", "Team", "team.svg"], ["directionRating", "Inszenierung", "inszenierung.svg"], ["tension", "Spannung", "spannung.svg"], ["scary", "gruselig (Kissenfaktor)", "gruselig.svg"]];
+  const ratingFields = [["fallQuality", "Fallqualität", "fallqualität.svg"], ["teamRating", "Team", "team.svg"], ["directionRating", "Inszenierung", "inszenierung.svg"], ["tension", "Spannung", "spannung.svg"], ["scary", "gruselig (Kissenfaktor)", "gruselig.svg"]];
+  const mainRatingFields = new Set(["fallQuality", "teamRating", "directionRating", "tension"]);
+  const overallRow = document.createElement("div"); overallRow.className = "rating-row general-rating";
+  const overallLabel = document.createElement("span"); overallLabel.className = "rating-label"; overallLabel.textContent = "Gesamtbewertung";
+  const overallValue = document.createElement("span"); overallValue.className = "rating-value"; overallValue.textContent = "0.0/5";
+  const overallStars = document.createElement("span"); overallStars.className = "stars";
+  for (let value = 1; value <= 5; value += 1) {
+    const star = document.createElement("span"); star.className = "star-button";
+    const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", 'url("assets/icons/episode.svg")');
+    star.append(icon); overallStars.append(star);
+  }
+  overallRow.append(overallLabel, overallValue, overallStars); form.append(overallRow);
+  const updateOverall = () => {
+    const values = [...form.querySelectorAll(".stars")].filter((stars) => mainRatingFields.has(stars.dataset.field)).map((stars) => Number(stars.dataset.value || 0));
+    const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+    overallValue.textContent = `${average.toFixed(1)}/5`;
+    [...overallStars.children].forEach((star, index) => star.classList.toggle("filled", index < Math.round(average)));
+  };
   for (const [field, label, iconFile] of ratingFields) {
-    const row = document.createElement("div"); row.className = field === "score" ? "rating-row general-rating" : "rating-row";
+    const row = document.createElement("div"); row.className = "rating-row";
     const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label;
     const stars = document.createElement("span"); stars.className = "stars interactive";
     for (let value = 1; value <= 5; value += 1) {
       const star = document.createElement("button"); star.type = "button"; star.className = "star-button"; star.setAttribute("aria-label", `${value} Sterne`); star.dataset.value = value;
-      const fallback = document.createElement("span"); fallback.className = "rating-icon-fallback"; fallback.textContent = "★"; star.append(fallback);
-      const icon = document.createElement("img"); icon.className = "rating-icon"; icon.alt = ""; icon.src = `assets/icons/${encodeURI(iconFile)}`;
-      icon.addEventListener("load", () => fallback.hidden = true);
-      icon.addEventListener("error", () => icon.remove());
-      star.append(icon);
-      star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => { item.classList.toggle("filled", index < value); item.firstChild.classList.toggle("filled", index < value); }); });
+      const icon = document.createElement("span"); icon.className = "rating-icon"; icon.style.setProperty("--icon-url", `url("assets/icons/${encodeURI(iconFile)}")`); star.append(icon);
+      star.addEventListener("click", () => { stars.dataset.value = value; [...stars.children].forEach((item, index) => item.classList.toggle("filled", index < value)); updateOverall(); });
       stars.append(star);
     }
     stars.dataset.field = field; stars.dataset.value = "0";
     row.append(text, stars); form.append(row);
   }
+  updateOverall();
   const topFields = document.createElement("div"); topFields.className = "rating-row top-fields";
   for (const [id, label, type] of [["watchedDate", "zuerst gesehen", "date"], ["watchCount", "Anzahl gesehen", "number"]]) { const field = document.createElement("div"); field.className = "top-field"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = type; input.className = type === "date" ? "top-date-input" : "top-count-input"; input.min = type === "number" ? "1" : ""; input.value = type === "number" ? "1" : ""; field.append(text, input); topFields.append(field); } form.append(topFields);
   for (const [id, label] of [["favoriteCharacter", "most loved Charakter"], ["leastFavoriteCharacter", "most hated Charakter"]]) { const row = document.createElement("div"); row.className = "rating-row character-row"; const text = document.createElement("span"); text.className = "rating-label"; text.textContent = label; const input = document.createElement("input"); input.id = `modal-${id}`; input.name = id; input.type = "text"; input.className = "character-input"; input.placeholder = "keine Auswahl"; row.append(text, input); form.append(row); }
@@ -158,8 +172,11 @@ function openEpisodeModal(episode) {
   const status = document.createElement("p"); status.className = "form-status"; status.setAttribute("role", "status"); form.append(status);
   form.addEventListener("submit", async (event) => {
     event.preventDefault(); status.textContent = "Wird gespeichert ...";
-    const values = Object.fromEntries([...form.querySelectorAll(".stars")].map((stars) => [stars.dataset.field, Number(stars.dataset.value || 0) * 2 || 5]));
-    const payload = { episodeId: episode.id, score: values.fallQuality || 5, ...values, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: notes.value };
+    const values = Object.fromEntries([...form.querySelectorAll(".stars")].map((stars) => [stars.dataset.field, Number(stars.dataset.value || 0)]));
+    const total = [values.fallQuality, values.teamRating, values.directionRating, values.tension].reduce((sum, value) => sum + value, 0) / 4;
+    const apiValue = (value) => value ? value * 2 : 5;
+    const apiValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, apiValue(value)]));
+    const payload = { episodeId: episode.id, score: Math.round(total * 2) || 5, ...apiValues, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: notes.value };
     try { await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); status.textContent = "Bewertung gespeichert."; } catch (error) { status.textContent = error.message; }
   });
   body.append(form);
@@ -318,7 +335,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=11", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=12", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }
