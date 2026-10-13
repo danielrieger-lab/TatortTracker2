@@ -125,6 +125,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .star-button { border: 0; background: transparent; width: 22px; height: 22px; padding: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .rating-area input, .rating-area textarea, .rating-area button { min-width: 0; max-width: 100%; }
 .rating-area textarea { width: 100%; resize: vertical; padding: 10px 12px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 0.95rem/1.4 sans-serif; }
+.readonly-field { width: 100%; margin: 0; padding: 10px 12px; border: 1px solid rgba(244, 241, 232, 0.18); border-radius: 4px; color: #d8dfd4; background: rgba(16, 22, 18, 0.35); font: 0.95rem/1.4 sans-serif; overflow-wrap: anywhere; }
 .rating-area .top-field { display: grid; gap: 6px; }
 .review-panel textarea { width: 100%; resize: vertical; padding: 13px 14px; border: 1px solid rgba(244, 241, 232, 0.28); border-radius: 4px; color: #f4f1e8; background: rgba(16, 22, 18, 0.55); font: 1rem/1.4 sans-serif; }
 .review-panel textarea:focus { outline: 2px solid #35185a; outline-offset: 2px; }
