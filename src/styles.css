@@ -211,7 +211,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .finder-form input { max-width: none; }
   .stats-grid { grid-template-columns: 1fr; }
   .profile-shell { width: 100%; padding: 0 0 108px; }
-  .profile-hero { --radar-center-y: 115px; min-height: 430px; padding: 24px 0 54px 14px; }
+  .profile-hero { --radar-center-y: 115px; min-height: 430px; padding: 10px 0 54px 14px; }
   .profile-summary strong { font-size: 2.15rem; }
   .profile-summary span { font-size: 1.25rem; }
   .profile-summary { max-width: 220px; }
