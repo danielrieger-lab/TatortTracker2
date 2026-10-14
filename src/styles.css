@@ -226,7 +226,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .profile-radar { top: 0; right: 0; width: 230px; height: 230px; }
   .radar-ring-outer { width: 210px; height: 210px; }
   .radar-ring-inner, .radar-core { width: 150px; height: 150px; }
-  .profile-menu { gap: 44px 14px; margin: 0; padding: 62px 24px 132px; border-radius: 24px 24px 0 0; transform: none; background: #5a4079; }
+  .profile-menu { width: 90%; margin: 20px auto 0; gap: 44px 14px; padding: 62px 24px 132px; border-radius: 24px; background: #9f75ce; transform: none; }
   .profile-menu button { font-size: 1.18rem; }
   .profile-stat-dialog { width: 100%; max-height: 90vh; margin: 4vh auto 0; padding: 14px; border-radius: 12px; }
   .profile-stat-list { max-height: calc(90vh - 64px); }
