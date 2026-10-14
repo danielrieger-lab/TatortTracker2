@@ -1,4 +1,4 @@
-const CACHE_NAME = "tatorttracker2-v24";
+const CACHE_NAME = "tatorttracker2-v25";
 const ASSETS = [
   "./", "./index.html", "./profile.html", "./social.html", "./stats.html", "./manifest.webmanifest", "./src/app.js", "./src/profile.js", "./src/social.js", "./src/stats.js", "./src/styles.css",
   "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2",
