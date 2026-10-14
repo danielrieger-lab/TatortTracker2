@@ -1,6 +1,8 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const SESSION_TOKEN_KEY = "tatorttracker.session-token";
-const showEpisodesRequested = new URLSearchParams(window.location.search).get("episodes") === "1" || window.location.hash === "#episodes";
+const EPISODES_INTENT_KEY = "tatorttracker.open-episodes";
+const showEpisodesRequested = new URLSearchParams(window.location.search).get("episodes") === "1" || window.location.hash === "#episodes" || sessionStorage.getItem(EPISODES_INTENT_KEY) === "1";
+if (showEpisodesRequested) sessionStorage.removeItem(EPISODES_INTENT_KEY);
 const authForm = document.querySelector("#auth-form");
 const authSubmit = authForm.querySelector("button[type=submit]");
 const authStatus = document.querySelector("#auth-status");
@@ -400,7 +402,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=30", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=31", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }

@@ -103,7 +103,7 @@
       </section>
     </main>
     <nav class="profile-nav app-nav requires-auth" aria-label="Hauptnavigation" hidden>
-      <a class="is-active" href="index.html?episodes=1#episodes" aria-label="Episoden" title="Episoden">⌕</a>
+      <a class="is-active" href="index.html?episodes=1#episodes" onclick="sessionStorage.setItem('tatorttracker.open-episodes','1')" aria-label="Episoden" title="Episoden">⌕</a>
       <a href="social.html" aria-label="Social" title="Social">♥</a>
       <a href="profile.html" aria-label="Profil" title="Profil">●</a>
     </nav>
@@ -116,6 +116,6 @@
         <div id="modal-body" class="modal-body"></div>
       </section>
     </div>
-    <script type="module" src="src/app.js?v=30"></script>
+    <script type="module" src="src/app.js?v=31"></script>
   </body>
 </html>
