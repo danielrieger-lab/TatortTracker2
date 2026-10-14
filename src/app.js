@@ -213,10 +213,6 @@ function openEpisodeModal(episode) {
     try { const saved = await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); ratingsByEpisode.set(String(episode.id), saved); renderFilteredEpisodes(); status.textContent = "Bewertung gespeichert."; if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); } catch (error) { status.textContent = error.message; }
   });
   body.append(form);
-  if (episode.roles.length) {
-    const heading = document.createElement("h3"); heading.textContent = "Besetzung"; body.append(heading);
-    const roles = document.createElement("ul"); roles.replaceChildren(...episode.roles.slice(0, 40).map((role) => { const item = document.createElement("li"); item.textContent = role.replace(":", " - "); return item; })); body.append(roles);
-  }
   document.querySelector("#episode-modal").hidden = false;
 }
 
