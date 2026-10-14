@@ -81,8 +81,8 @@ async function loadProfile() {
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = Number(stats.overview.rated || 0);
-    document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
     document.querySelector("#profile-count").textContent = `${rated} / ${totalEpisodes} Fällen`;
+    document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
     renderSection("best");
     status.textContent = "";
   } catch (error) {
