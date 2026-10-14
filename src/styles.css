@@ -166,7 +166,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .radar-ring-outer { width: 280px; height: 280px; }
 .radar-ring-inner { width: 205px; height: 205px; background: #9f75ce; }
 .radar-core { position: absolute; left: 50%; top: 50%; width: 201px; height: 201px; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); }
-.profile-menu { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 52px 24px; margin: 0; padding: 76px 50px 144px; border-radius: 28px 28px 0 0; background: #5a4079; overflow: hidden; }
+.profile-menu { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 52px 24px; margin: -76px 0 0; padding: 76px 50px 144px; border-radius: 28px 28px 0 0; background: #5a4079; overflow: hidden; }
 .profile-menu button { padding: 0; border: 0; color: #ffffff; background: transparent; font: 1.65rem/1.1 "Futura Light", sans-serif; text-align: left; cursor: pointer; }
 .profile-menu button.is-active { font-family: "Futura Black", sans-serif; }
 .profile-detail { position: relative; z-index: 3; margin: -112px 24px 0; padding: 20px; border-radius: 18px; background: #9f75ce; color: #291344; }
@@ -222,7 +222,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .profile-radar { top: 0; right: 0; width: 230px; height: 230px; }
   .radar-ring-outer { width: 210px; height: 210px; }
   .radar-ring-inner, .radar-core { width: 150px; height: 150px; }
-  .profile-menu { gap: 44px 14px; padding: 62px 24px 132px; border-radius: 24px 24px 0 0; }
+  .profile-menu { gap: 44px 14px; margin-top: -190px; padding: 62px 24px 132px; border-radius: 24px 24px 0 0; }
   .profile-menu button { font-size: 1.18rem; }
   .profile-detail { margin: -100px 18px 0; }
   .profile-nav { bottom: 18px; width: calc(100% - 32px); padding-right: 18px; padding-left: 18px; }
