@@ -1,5 +1,6 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const SESSION_TOKEN_KEY = "tatorttracker.session-token";
+const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v1";
 const status = document.querySelector("#profile-status");
 const detailTitle = document.querySelector("#profile-detail-title");
 const detailContent = document.querySelector("#profile-detail-content");
@@ -60,7 +61,7 @@ async function loadProfile() {
     profileData = stats;
     document.querySelector("#profile-username").textContent = me.user.username;
     document.querySelector("#profile-friend-code").textContent = `Freundescode ${me.user.friendCode}`;
-    const totalEpisodes = episodes.episodes.length;
+    const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = Number(stats.overview.rated || 0);
     document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
     document.querySelector("#profile-count").textContent = `${rated} / ${totalEpisodes} Fällen`;
@@ -70,6 +71,15 @@ async function loadProfile() {
     status.textContent = error.message;
     document.querySelector("#profile-username").textContent = "Nicht angemeldet";
   }
+}
+
+async function getBroadcastedEpisodeCount(episodes) {
+  const today = new Date().toISOString().slice(0, 10);
+  const cached = JSON.parse(localStorage.getItem(BROADCAST_COUNT_CACHE_KEY) || "null");
+  if (cached?.date === today && Number.isInteger(cached.count)) return cached.count;
+  const count = episodes.filter((episode) => !episode.airDate || String(episode.airDate).slice(0, 10) <= today).length;
+  localStorage.setItem(BROADCAST_COUNT_CACHE_KEY, JSON.stringify({ date: today, count }));
+  return count;
 }
 
 document.querySelectorAll("[data-profile-section]").forEach((button) => button.addEventListener("click", () => {

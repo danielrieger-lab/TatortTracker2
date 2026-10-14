@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#32175a" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
+    <link rel="stylesheet" href="src/styles.css" />
+    <title>Social | TatortTracker2</title>
+  </head>
+  <body class="profile-page">
+    <main class="profile-shell social-shell">
+      <header class="social-header">
+        <p class="eyebrow">Gemeinsam schauen</p>
+        <h1>Social</h1>
+        <p>Finde Freunde über ihren vierstelligen Freundescode.</p>
+      </header>
+      <section class="social-panel">
+        <label for="social-code">Freundescode</label>
+        <form id="social-form">
+          <input id="social-code" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="0000" required />
+          <button class="primary-button" type="submit">Suchen</button>
+        </form>
+        <p id="social-status" class="form-status" role="status"></p>
+        <div id="social-result" class="social-result" hidden></div>
+      </section>
+      <nav class="profile-nav" aria-label="Hauptnavigation">
+        <a href="index.html" aria-label="Episoden" title="Episoden">⌕</a>
+        <a class="is-active" href="social.html" aria-label="Social" title="Social">♥</a>
+        <a href="profile.html" aria-label="Profil" title="Profil">●</a>
+      </nav>
+    </main>
+    <script type="module" src="src/social.js?v=1"></script>
+  </body>
+</html>
