@@ -106,3 +106,9 @@ document.querySelectorAll("[data-profile-stat]").forEach((button) => button.addE
 document.querySelectorAll("[data-close-profile-stat]").forEach((element) => element.addEventListener("click", () => { statModal.hidden = true; }));
 
 loadProfile();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js?v=33", { updateViaCache: "none" }).then((registration) => registration.update());
+  });
+}
