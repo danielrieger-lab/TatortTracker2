@@ -59,7 +59,8 @@ async function loadProfile() {
     const [me, stats, episodes] = await Promise.all([request("/me"), request("/statistics"), request("/episodes")]);
     if (!me.user) throw new Error("Bitte zuerst anmelden.");
     profileData = stats;
-    document.querySelector("#profile-username").textContent = me.user.username;
+    document.querySelector("#profile-username").textContent = `[${me.user.rankShort}] ${me.user.username}`;
+    document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
     document.querySelector("#profile-friend-code").textContent = `Freundescode ${me.user.friendCode}`;
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = Number(stats.overview.rated || 0);

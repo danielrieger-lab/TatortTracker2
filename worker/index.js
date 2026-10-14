@@ -149,7 +149,7 @@ async function me(request, env, headers) {
   if (!user) return json({ user: null }, 200, headers);
   const authorization = request.headers.get("Authorization") || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
-  return json({ user, token }, 200, headers);
+  return json({ user: { ...user, ...await getUserProgress(user.id, env) }, token }, 200, headers);
 }
 
 async function findByCode(code, env, headers) {
