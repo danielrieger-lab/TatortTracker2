@@ -17,6 +17,20 @@ async function request(path) {
   return data;
 }
 
+document.querySelector("#profile-logout").addEventListener("click", async () => {
+  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  try {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } finally {
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    window.location.href = "index.html";
+  }
+});
+
 function renderList(items, formatter = (item) => item.title || item.label) {
   if (!items.length) {
     detailContent.replaceChildren(Object.assign(document.createElement("p"), { textContent: "Noch keine Daten vorhanden." }));
