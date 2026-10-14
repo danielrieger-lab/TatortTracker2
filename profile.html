@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#32175a" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
+    <link rel="stylesheet" href="src/styles.css" />
+    <title>Profil | TatortTracker2</title>
+  </head>
+  <body class="profile-page">
+    <main class="profile-shell">
+      <section class="profile-hero" aria-labelledby="profile-title">
+        <div class="profile-summary">
+          <strong id="profile-percent">-</strong>
+          <span id="profile-count">- / - Fällen</span>
+          <h1 id="profile-title">Dein Profil</h1>
+          <p id="profile-username">Wird geladen ...</p>
+          <p id="profile-friend-code"></p>
+        </div>
+        <div class="profile-radar" aria-hidden="true">
+          <span class="radar-ring radar-ring-outer"></span>
+          <span class="radar-ring radar-ring-inner"></span>
+          <span class="radar-cross radar-cross-horizontal"></span>
+          <span class="radar-cross radar-cross-vertical"></span>
+          <span class="radar-core"></span>
+        </div>
+      </section>
+
+      <section class="profile-menu" aria-label="Profilübersicht">
+        <button data-profile-section="best">Beste Fälle</button>
+        <button data-profile-section="worst">Schlechteste Fälle</button>
+        <button data-profile-section="teams">Beste Teams</button>
+        <button data-profile-section="worstTeams">Schlechteste Teams</button>
+        <button data-profile-section="cities">Beste Städte</button>
+        <button data-profile-section="worstCities">Schlechteste Städte</button>
+        <button data-profile-section="average">Durchschnitt</button>
+        <button data-profile-section="scary">Gruseligste Fälle</button>
+      </section>
+
+      <section id="profile-detail" class="profile-detail" aria-live="polite">
+        <h2 id="profile-detail-title">Beste Fälle</h2>
+        <div id="profile-detail-content"></div>
+      </section>
+
+      <nav class="profile-nav" aria-label="Profilnavigation">
+        <a href="index.html" aria-label="Episoden" title="Episoden">⌕</a>
+        <a href="stats.html" aria-label="Statistik" title="Statistik">♥</a>
+        <a class="is-active" href="profile.html" aria-label="Profil" title="Profil">●</a>
+      </nav>
+      <p id="profile-status" class="profile-status" role="status"></p>
+    </main>
+    <script type="module" src="src/profile.js?v=1"></script>
+  </body>
+</html>

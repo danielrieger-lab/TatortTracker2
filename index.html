@@ -16,7 +16,10 @@
         <p class="eyebrow">Gemeinsam schauen</p>
         <h1>TatortTracker2</h1>
         <p class="intro">Bewerte Fälle, finde Freunde und behalte deine Sammlung im Blick.</p>
-        <a class="secondary-button hero-link" href="stats.html">Statistik öffnen</a>
+        <div class="hero-links">
+          <a class="secondary-button hero-link" href="profile.html">Profil öffnen</a>
+          <a class="secondary-button hero-link" href="stats.html">Statistik öffnen</a>
+        </div>
       </header>
       <section id="auth-panel" class="panel auth-panel" aria-labelledby="auth-title">
         <div class="panel-heading">
@@ -55,6 +58,7 @@
         <p class="eyebrow">Dein Profil</p>
         <h2 id="account-name"></h2>
         <p>Dein Freundescode: <strong id="account-code"></strong></p>
+        <a class="secondary-button profile-link" href="profile.html">Profil öffnen</a>
         <button id="logout-button" class="secondary-button" type="button">Abmelden</button>
       </section>
       <section class="panel episodes-panel requires-auth" aria-labelledby="episodes-title" hidden>
