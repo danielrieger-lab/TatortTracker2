@@ -166,14 +166,6 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .radar-ring-outer { width: 280px; height: 280px; }
 .radar-ring-inner { width: 205px; height: 205px; background: #9f75ce; }
 .radar-core { position: absolute; left: 50%; top: 50%; width: 201px; height: 201px; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); }
-.profile-menu { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 52px 24px; margin: 0; padding: 76px 50px 144px; border-radius: 28px 28px 0 0; background: #5a4079; overflow: hidden; transform: translateY(-76px); }
-.profile-menu button { padding: 0; border: 0; color: #ffffff; background: transparent; font: 1.65rem/1.1 "Futura Light", sans-serif; text-align: left; cursor: pointer; }
-.profile-menu button.is-active { font-family: "Futura Black", sans-serif; }
-.profile-detail { position: relative; z-index: 3; margin: -112px 24px 0; padding: 20px; border-radius: 18px; background: #9f75ce; color: #291344; }
-.profile-detail h2 { margin: 0 0 14px; font: 900 1.25rem/1.1 "Futura Black", sans-serif; }
-.profile-result-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(41,19,68,0.2); font-size: 0.95rem; }
-.profile-result-row:last-child { border-bottom: 0; }
-.profile-result-row strong { white-space: nowrap; }
 .profile-nav { position: fixed; z-index: 5; bottom: 28px; left: 50%; display: flex; justify-content: space-around; width: min(calc(100% - 64px), 640px); max-width: calc(100vw - 32px); padding: 12px 34px; border-radius: 30px; background: #a276cf; transform: translateX(-50%); }
 .profile-nav a { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: #2e1456; font: 900 2rem/1 sans-serif; text-decoration: none; }
 .profile-nav a.is-active { background: rgba(46,20,86,0.18); }
