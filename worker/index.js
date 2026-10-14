@@ -165,7 +165,16 @@ async function episodeActivity(episodeId, env, headers) {
 
 async function listEpisodes(env, headers) {
   const episodes = await env.DB.prepare("SELECT id, title, investigator AS team, air_date AS airDate, location, notes AS synopsis, roles_json AS rolesJson FROM episode_catalog ORDER BY CAST(id AS INTEGER) DESC LIMIT 2000").all();
-  return json({ episodes: (episodes.results || []).map((episode) => ({ ...episode, title: cleanEpisodeTitle(episode.title), roles: parseRoles(episode.rolesJson) })) }, 200, headers);
+  const preferred = new Map();
+  for (const episode of episodes.results || []) {
+    const normalized = { ...episode, title: cleanEpisodeTitle(episode.title), roles: parseRoles(episode.rolesJson) };
+    const number = String(normalized.id).match(/^\d+/)?.[0] || String(normalized.id);
+    const score = (String(normalized.id) === number ? 2 : 0) + (/Ã|Â|�/.test(normalized.title) ? 0 : 1);
+    const current = preferred.get(number);
+    const currentScore = current ? (String(current.id) === number ? 2 : 0) + (/Ã|Â|�/.test(current.title) ? 0 : 1) : -1;
+    if (!current || score > currentScore) preferred.set(number, normalized);
+  }
+  return json({ episodes: [...preferred.values()] }, 200, headers);
 }
 
 function parseRoles(value) {

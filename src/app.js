@@ -141,6 +141,18 @@ function cleanEpisodeTitle(title) {
   return String(title || "").replace(/^\s*Tatort\s*:\s*/i, "").trim();
 }
 
+function deduplicateEpisodes(episodes) {
+  const preferred = new Map();
+  for (const episode of episodes) {
+    const number = String(episode.id).match(/^\d+/)?.[0] || String(episode.id);
+    const current = preferred.get(number);
+    const score = (String(episode.id) === number ? 2 : 0) + (/Ã|Â|�/.test(episode.title) ? 0 : 1);
+    const currentScore = current ? (String(current.id) === number ? 2 : 0) + (/Ã|Â|�/.test(current.title) ? 0 : 1) : -1;
+    if (!current || score > currentScore) preferred.set(number, episode);
+  }
+  return [...preferred.values()];
+}
+
 function openEpisodeModal(episode) {
   document.querySelector("#modal-title").textContent = episode.title;
   const body = document.querySelector("#modal-body");
@@ -254,7 +266,7 @@ async function loadEpisodes() {
     if (onlineEpisodes.length < 1000) {
       throw new Error("Online catalog is incomplete");
     }
-    allEpisodes = onlineEpisodes;
+    allEpisodes = deduplicateEpisodes(onlineEpisodes);
     localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(allEpisodes));
     renderFilteredEpisodes();
     status.textContent = "Online synchronisiert.";
@@ -262,13 +274,13 @@ async function loadEpisodes() {
     try {
       const response = await fetch(`${FULL_CATALOG_SOURCE}?refresh=${Date.now()}`, { cache: "no-store" });
       const catalog = await response.json();
-      allEpisodes = catalog.map(normalizeCatalogEpisode);
+      allEpisodes = deduplicateEpisodes(catalog.map(normalizeCatalogEpisode));
       localStorage.setItem(EPISODE_CACHE_KEY, JSON.stringify(allEpisodes));
       renderFilteredEpisodes();
       status.textContent = "Lokaler Vollkatalog geladen.";
     } catch {
       const cached = JSON.parse(localStorage.getItem(EPISODE_CACHE_KEY) || "[]");
-      allEpisodes = cached;
+      allEpisodes = deduplicateEpisodes(cached);
       renderFilteredEpisodes();
       status.textContent = cached.length ? "Offline: gespeicherte Sammlung." : "Sammlung offline nicht verfuegbar.";
     }
