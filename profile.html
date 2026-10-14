@@ -27,7 +27,26 @@
         </div>
       </section>
 
+      <section class="profile-menu" aria-label="Profilstatistik">
+        <button data-profile-stat="best">Beste Fälle</button>
+        <button data-profile-stat="worst">Schlechteste Fälle</button>
+        <button data-profile-stat="teams">Beste Teams</button>
+        <button data-profile-stat="worstTeams">Schlechteste Teams</button>
+        <button data-profile-stat="cities">Beste Städte</button>
+        <button data-profile-stat="worstCities">Schlechteste Städte</button>
+        <button data-profile-stat="average">Durchschnitt</button>
+        <button data-profile-stat="scary">Gruseligste Fälle</button>
+      </section>
+
       <button id="profile-logout" class="profile-logout" type="button">Abmelden</button>
+
+      <div id="profile-stat-modal" class="profile-stat-modal" hidden>
+        <div class="profile-stat-backdrop" data-close-profile-stat></div>
+        <section class="profile-stat-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-stat-title">
+          <div class="profile-stat-header"><h2 id="profile-stat-title"></h2><button class="profile-stat-close" type="button" data-close-profile-stat aria-label="Schließen">×</button></div>
+          <div id="profile-stat-list" class="profile-stat-list"></div>
+        </section>
+      </div>
 
       <nav class="profile-nav" aria-label="Hauptnavigation">
         <a href="index.html?episodes=1#episodes" onclick="sessionStorage.setItem('tatorttracker.open-episodes','1')" aria-label="Episoden" title="Episoden">⌕</a>
