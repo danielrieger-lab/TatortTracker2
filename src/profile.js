@@ -1,6 +1,6 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const SESSION_TOKEN_KEY = "tatorttracker.session-token";
-const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v1";
+const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v2";
 const status = document.querySelector("#profile-status");
 const detailTitle = document.querySelector("#profile-detail-title");
 const detailContent = document.querySelector("#profile-detail-content");
@@ -77,9 +77,25 @@ async function getBroadcastedEpisodeCount(episodes) {
   const today = new Date().toISOString().slice(0, 10);
   const cached = JSON.parse(localStorage.getItem(BROADCAST_COUNT_CACHE_KEY) || "null");
   if (cached?.date === today && Number.isInteger(cached.count)) return cached.count;
-  const count = episodes.filter((episode) => !episode.airDate || String(episode.airDate).slice(0, 10) <= today).length;
+  const count = episodes.filter((episode) => {
+    const date = parseAirDate(episode.airDate);
+    return !date || date <= today;
+  }).length;
   localStorage.setItem(BROADCAST_COUNT_CACHE_KEY, JSON.stringify({ date: today, count }));
   return count;
+}
+
+function parseAirDate(value) {
+  const text = String(value || "").replace(/\{\{DatumZelle\|([^}]+)\}\}/gi, "$1").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const numeric = text.match(/^(\d{1,2})[.]\s*(\d{1,2})[.]\s*(\d{4})$/);
+  if (numeric) return `${numeric[3]}-${numeric[2].padStart(2, "0")}-${numeric[1].padStart(2, "0")}`;
+  const named = text.match(/^(\d{1,2})[.]\s*(Jan|Feb|Mär|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)\.?\s*(\d{4})$/i);
+  if (named) {
+    const months = { jan: "01", feb: "02", mär: "03", apr: "04", mai: "05", jun: "06", jul: "07", aug: "08", sep: "09", okt: "10", nov: "11", dez: "12" };
+    return `${named[3]}-${months[named[2].toLocaleLowerCase("de-DE")]}-${named[1].padStart(2, "0")}`;
+  }
+  return null;
 }
 
 document.querySelectorAll("[data-profile-section]").forEach((button) => button.addEventListener("click", () => {

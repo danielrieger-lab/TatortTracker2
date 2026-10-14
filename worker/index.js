@@ -160,12 +160,21 @@ async function findByCode(code, env, headers) {
 }
 
 async function getUserProgress(userId, env) {
-  const [rated, available] = await Promise.all([
+  const [rated, episodeDates] = await Promise.all([
     env.DB.prepare("SELECT COUNT(*) AS count FROM ratings WHERE user_id = ?1").bind(userId).first(),
-    env.DB.prepare("SELECT COUNT(*) AS count FROM episode_catalog WHERE air_date IS NULL OR air_date = '' OR substr(air_date, 1, 10) <= date('now')").first(),
+    env.DB.prepare("SELECT air_date AS airDate FROM episode_catalog").all(),
   ]);
   const ratedCount = Number(rated?.count || 0);
-  const availableCount = Number(available?.count || 0);
+  const today = new Date().toISOString().slice(0, 10);
+  const uniqueDates = new Map();
+  for (const episode of episodeDates.results || []) {
+    const number = String(episode.id).match(/^\d+/)?.[0] || String(episode.id);
+    if (!uniqueDates.has(number) || String(episode.id) === number) uniqueDates.set(number, episode.airDate);
+  }
+  const availableCount = [...uniqueDates.values()].filter((airDate) => {
+    const date = parseAirDate(airDate);
+    return !date || date <= today;
+  }).length;
   const percent = availableCount ? (ratedCount / availableCount) * 100 : 0;
   const ranks = [
     [90, "LPD", "Leitende Polizeidirektorin"], [80, "PD", "Polizeidirektorin"], [70, "POR", "Polizeioberrätin"],
@@ -175,6 +184,19 @@ async function getUserProgress(userId, env) {
   ];
   const rank = ranks.find(([threshold]) => percent >= threshold);
   return { ratedCount, availableCount, percent: Number(percent.toFixed(1)), rankShort: rank[1], rankTitle: rank[2] };
+}
+
+function parseAirDate(value) {
+  const text = String(value || "").replace(/\{\{DatumZelle\|([^}]+)\}\}/gi, "$1").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const numeric = text.match(/^(\d{1,2})[.]\s*(\d{1,2})[.]\s*(\d{4})$/);
+  if (numeric) return `${numeric[3]}-${numeric[2].padStart(2, "0")}-${numeric[1].padStart(2, "0")}`;
+  const named = text.match(/^(\d{1,2})[.]\s*(Jan|Feb|Mär|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)\.?\s*(\d{4})$/i);
+  if (named) {
+    const months = { jan: "01", feb: "02", mär: "03", apr: "04", mai: "05", jun: "06", jul: "07", aug: "08", sep: "09", okt: "10", nov: "11", dez: "12" };
+    return `${named[3]}-${months[named[2].toLocaleLowerCase("de-DE")]}-${named[1].padStart(2, "0")}`;
+  }
+  return null;
 }
 
 async function episodeActivity(episodeId, env, headers) {
