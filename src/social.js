@@ -21,7 +21,7 @@ form.addEventListener("submit", async (event) => {
       return;
     }
     const name = document.createElement("strong");
-    name.textContent = `[${data.user.rankShort}] ${data.user.username}`;
+    name.textContent = `${data.user.rankShort} ${data.user.username}`;
     const rank = document.createElement("span");
     rank.className = "social-rank-title";
     rank.textContent = data.user.rankTitle;
