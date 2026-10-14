@@ -4,6 +4,9 @@ const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v2";
 const status = document.querySelector("#profile-status");
 const detailTitle = document.querySelector("#profile-detail-title");
 const detailContent = document.querySelector("#profile-detail-content");
+const statModal = document.querySelector("#profile-stat-modal");
+const statModalTitle = document.querySelector("#profile-stat-title");
+const statModalList = document.querySelector("#profile-stat-list");
 let profileData;
 
 async function request(path) {
@@ -49,38 +52,54 @@ function renderList(items, formatter = (item) => item.title || item.label) {
 }
 
 function renderSection(section) {
-  const sections = {
-    best: ["Beste Fälle", profileData.best, (item) => item.title],
-    worst: ["Schlechteste Fälle", profileData.worst, (item) => item.title],
-    teams: ["Beste Teams", profileData.teams, (item) => item.label],
-    worstTeams: ["Schlechteste Teams", [...profileData.teams].reverse(), (item) => item.label],
-    cities: ["Beste Städte", profileData.cities, (item) => item.label],
-    worstCities: ["Schlechteste Städte", [...profileData.cities].reverse(), (item) => item.label],
-    average: ["Durchschnitt", [["Gesamt", profileData.overview.average], ["Fallqualität", profileData.categories.fallQuality], ["Team", profileData.categories.team], ["Inszenierung", profileData.categories.direction], ["Spannung", profileData.categories.tension], ["Gruseligkeit", profileData.categories.scary]], (item) => item[0]],
-    scary: ["Gruseligste Fälle", profileData.scary, (item) => item.title],
-  };
-  const [title, items, formatter] = sections[section] || sections.best;
-  detailTitle.textContent = title;
-  if (section === "average") {
-    renderList(items.map(([label, score]) => ({ label, score: score ?? "-" })), (item) => item.label);
-  } else {
-    renderList(items, formatter);
+  const sectionData = profileData.sections[section] || profileData.sections.best;
+  detailTitle.textContent = sectionData.title;
+  renderList(sectionData.items, (item) => item.label);
+  statModalTitle.textContent = sectionData.title;
+  statModalList.replaceChildren(...sectionData.items.map((item, index) => {
+    const row = document.createElement("div"); row.className = "profile-stat-row";
+    const label = document.createElement("span"); label.textContent = `${index + 1}. ${item.label}`;
+    const score = document.createElement("strong"); score.textContent = `${Number(item.score).toFixed(1)}/5`;
+    row.append(label, score); return row;
+  }));
+  statModal.hidden = false;
+}
+
+function calculateProfileStatistics(ratings, episodes) {
+  const byId = new Map(episodes.map((episode) => [String(episode.id), episode]));
+  const get = (rating, key) => Math.max(0, Math.min(5, Number(rating[key] || 0) / 2));
+  const episodeScores = ratings.map((rating) => ({ rating, episode: byId.get(String(rating.episodeId)), score: (get(rating, "fallQuality") + get(rating, "teamRating") + get(rating, "directionRating") + get(rating, "tension")) / 4 }));
+  const ratedScores = episodeScores.filter((item) => item.score > 0);
+  const average = (key) => ratings.length ? ratings.reduce((sum, rating) => sum + get(rating, key), 0) / ratings.length : 0;
+  const makeRank = (items, descending = true) => items.filter((item) => item.score > 0).sort((a, b) => (descending ? b.score - a.score : a.score - b.score) || a.label.localeCompare(b.label, "de")).slice(0, 10);
+  const teamGroups = new Map(); const cityGroups = new Map();
+  for (const item of episodeScores) {
+    const team = String(item.episode?.team || item.episode?.investigator || "").trim();
+    const city = String(item.episode?.location || "").trim();
+    if (team) { const group = teamGroups.get(team) || { general: [], team: [], label: team }; if (item.score > 0) group.general.push(item.score); if (item.score > 0 || get(item.rating, "teamRating") > 0) group.team.push(get(item.rating, "teamRating")); teamGroups.set(team, group); }
+    if (city && item.score > 0) { const group = cityGroups.get(city) || { values: [], label: city }; group.values.push(item.score); cityGroups.set(city, group); }
   }
+  const teams = [...teamGroups.values()].map((group) => ({ label: group.label, score: ((group.general.reduce((a, b) => a + b, 0) / (group.general.length || 1)) + (group.team.reduce((a, b) => a + b, 0) / (group.team.length || 1))) / 2 }));
+  const cities = [...cityGroups.values()].map((group) => ({ label: group.label, score: group.values.reduce((a, b) => a + b, 0) / group.values.length }));
+  const bestEpisodes = ratedScores.map((item) => ({ label: item.episode?.title || item.rating.episodeId, score: item.score }));
+  const scary = ratings.map((rating) => ({ label: byId.get(String(rating.episodeId))?.title || rating.episodeId, score: get(rating, "scary") }));
+  const categories = [["Gesamt", ratedScores.length ? ratedScores.reduce((sum, item) => sum + item.score, 0) / ratedScores.length : 0], ["Fallqualität", average("fallQuality")], ["Team", average("teamRating")], ["Inszenierung", average("directionRating")], ["Spannung", average("tension")], ["Gruseligkeit", average("scary")]];
+  return { sections: { best: { title: "Beste Fälle", items: makeRank(bestEpisodes) }, worst: { title: "Schlechteste Fälle", items: makeRank(bestEpisodes, false) }, teams: { title: "Beste Teams", items: makeRank(teams) }, worstTeams: { title: "Schlechteste Teams", items: makeRank(teams, false) }, cities: { title: "Beste Städte", items: makeRank(cities) }, worstCities: { title: "Schlechteste Städte", items: makeRank(cities, false) }, scary: { title: "Gruseligste Fälle", items: makeRank(scary) }, average: { title: "Durchschnitt", items: categories.map(([label, score]) => ({ label, score })) } } };
 }
 
 async function loadProfile() {
   try {
-    const [me, stats, episodes] = await Promise.all([request("/me"), request("/statistics"), request("/episodes")]);
+    const [me, ratings, episodes] = await Promise.all([request("/me"), request("/ratings"), request("/episodes")]);
     if (!me.user) {
       window.location.replace("index.html");
       return;
     }
-    profileData = stats;
+    profileData = calculateProfileStatistics(ratings.ratings, episodes.episodes);
     document.querySelector("#profile-username").textContent = `${me.user.rankShort} ${me.user.username}`;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
-    const rated = Number(stats.overview.rated || 0);
+    const rated = ratings.ratings.length;
     document.querySelector("#profile-count").textContent = `${rated} / ${totalEpisodes} Fällen`;
     document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
     renderSection("best");
@@ -120,5 +139,7 @@ document.querySelectorAll("[data-profile-section]").forEach((button) => button.a
   document.querySelectorAll("[data-profile-section]").forEach((item) => item.classList.toggle("is-active", item === button));
   renderSection(button.dataset.profileSection);
 }));
+
+document.querySelectorAll("[data-close-profile-stat]").forEach((element) => element.addEventListener("click", () => { statModal.hidden = true; }));
 
 loadProfile();
