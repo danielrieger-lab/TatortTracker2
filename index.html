@@ -21,7 +21,7 @@
           <a class="secondary-button hero-link" href="stats.html">Statistik öffnen</a>
         </div>
       </header>
-      <section id="auth-panel" class="panel auth-panel" aria-labelledby="auth-title" hidden>
+      <section id="auth-panel" class="panel auth-panel" aria-labelledby="auth-title">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Dein Zugang</p>
@@ -61,7 +61,7 @@
         <a class="secondary-button profile-link" href="profile.html">Profil öffnen</a>
         <button id="logout-button" class="secondary-button" type="button">Abmelden</button>
       </section>
-      <section class="panel episodes-panel" aria-labelledby="episodes-title">
+      <section class="panel episodes-panel requires-auth" aria-labelledby="episodes-title" hidden>
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Die Sammlung</p>
@@ -102,7 +102,7 @@
         <ul id="report-list" class="report-list"></ul>
       </section>
     </main>
-    <nav class="profile-nav app-nav" aria-label="Hauptnavigation">
+    <nav class="profile-nav app-nav requires-auth" aria-label="Hauptnavigation" hidden>
       <a class="is-active" href="index.html" aria-label="Episoden" title="Episoden">⌕</a>
       <a href="social.html" aria-label="Social" title="Social">♥</a>
       <a href="profile.html" aria-label="Profil" title="Profil">●</a>

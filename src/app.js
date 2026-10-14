@@ -30,18 +30,16 @@ async function request(path, options = {}) {
 }
 
 function showUser(user) {
-  if (authPanel) authPanel.hidden = true;
+  if (user) {
+    window.location.replace("profile.html");
+    return;
+  }
+  if (authPanel) authPanel.hidden = false;
   document.querySelectorAll(".requires-auth").forEach((element) => {
     element.hidden = true;
   });
   if (accountPanel) accountPanel.hidden = true;
   if (adminPanel) adminPanel.hidden = true;
-  if (user) {
-    accountName.textContent = user.username;
-    accountCode.textContent = user.friendCode;
-    if (user.isAdmin) loadReports();
-    loadRatings();
-  }
 }
 
 async function loadRatings() {

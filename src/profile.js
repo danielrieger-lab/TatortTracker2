@@ -71,7 +71,10 @@ function renderSection(section) {
 async function loadProfile() {
   try {
     const [me, stats, episodes] = await Promise.all([request("/me"), request("/statistics"), request("/episodes")]);
-    if (!me.user) throw new Error("Bitte zuerst anmelden.");
+    if (!me.user) {
+      window.location.replace("index.html");
+      return;
+    }
     profileData = stats;
     document.querySelector("#profile-username").textContent = `${me.user.rankShort} ${me.user.username}`;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
