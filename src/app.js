@@ -30,12 +30,12 @@ async function request(path, options = {}) {
 }
 
 function showUser(user) {
-  authPanel.hidden = Boolean(user);
+  if (authPanel) authPanel.hidden = true;
   document.querySelectorAll(".requires-auth").forEach((element) => {
-    element.hidden = !user;
+    element.hidden = true;
   });
-  accountPanel.hidden = !user;
-  adminPanel.hidden = !user?.isAdmin;
+  if (accountPanel) accountPanel.hidden = true;
+  if (adminPanel) adminPanel.hidden = true;
   if (user) {
     accountName.textContent = user.username;
     accountCode.textContent = user.friendCode;
@@ -394,7 +394,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=19", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=20", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }
