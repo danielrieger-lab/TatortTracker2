@@ -1,5 +1,6 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const SESSION_TOKEN_KEY = "tatorttracker.session-token";
+const showEpisodesRequested = new URLSearchParams(window.location.search).get("episodes") === "1";
 const authForm = document.querySelector("#auth-form");
 const authSubmit = authForm.querySelector("button[type=submit]");
 const authStatus = document.querySelector("#auth-status");
@@ -31,7 +32,11 @@ async function request(path, options = {}) {
 
 function showUser(user) {
   if (user) {
-    window.location.replace("profile.html");
+    if (!showEpisodesRequested) window.location.replace("profile.html");
+    authPanel.hidden = true;
+    document.querySelector(".episodes-panel").hidden = false;
+    document.querySelector(".app-nav").hidden = false;
+    loadRatings();
     return;
   }
   if (authPanel) authPanel.hidden = false;
