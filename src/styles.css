@@ -151,19 +151,14 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .profile-page { min-width: 0; max-width: 100vw; min-height: 100vh; background: #32175a; overflow-x: hidden; }
 .profile-shell { width: min(100%, 768px); max-width: 100%; min-height: 100vh; margin: 0 auto; padding: 0 32px 116px; color: #ffffff; font-family: "Futura Light", "Futura", sans-serif; overflow-x: hidden; }
 .profile-hero { position: relative; width: 100%; max-width: 100%; min-width: 0; min-height: 482px; overflow: hidden; padding: 106px 0 80px 46px; }
-.profile-hero::before, .profile-hero::after { position: absolute; z-index: 1; display: block; content: ""; background: #ffffff; opacity: 0.95; }
-.profile-hero::before { top: 48%; left: 50%; width: 100vw; height: 3px; transform: translateX(-50%); }
-.profile-hero::after { top: 0; bottom: 0; left: calc(100% - 53px); width: 3px; }
+.profile-hero::before { position: absolute; z-index: 1; top: 186px; left: 50%; display: block; width: 100vw; height: 3px; content: ""; background: #ffffff; opacity: 0.95; transform: translateX(-50%); }
 .profile-summary { position: relative; z-index: 2; max-width: 330px; }
 .profile-summary strong { display: block; font: 900 3.1rem/1 "Futura Black", sans-serif; }
 .profile-summary span { display: block; margin-top: 14px; font-size: 1.8rem; line-height: 1.1; }
-.profile-summary p:first-of-type { margin-top: 108px; }
+.profile-summary p:first-of-type { margin-top: 78px; }
 .profile-summary p { max-width: 100%; margin: 6px 0 0; font-size: 1.45rem; line-height: 1.2; overflow-wrap: anywhere; }
 .profile-summary p + p { font-size: 1rem; }
 .profile-radar { position: absolute; top: 36px; right: 8%; width: 300px; height: 300px; }
-.profile-radar::before, .profile-radar::after { position: absolute; z-index: 2; display: block; content: ""; background: #ffffff; opacity: 0.95; }
-.profile-radar::before { top: calc(50% - 1.5px); left: 50%; width: 100vw; height: 3px; transform: translateX(-50%); }
-.profile-radar::after { top: 50%; left: calc(50% - 1.5px); width: 3px; height: 100vh; transform: translateY(-50%); }
 .radar-ring { position: absolute; display: block; }
 .radar-ring { left: 50%; top: 50%; border: 3px solid #ffffff; border-radius: 50%; transform: translate(-50%, -50%); }
 .radar-ring-outer { width: 280px; height: 280px; }
@@ -218,7 +213,8 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .profile-summary strong { font-size: 2.15rem; }
   .profile-summary span { font-size: 1.25rem; }
   .profile-summary p { font-size: 1.1rem; }
-  .profile-summary p:first-of-type { margin-top: 94px; }
+  .profile-summary p:first-of-type { margin-top: 64px; }
+  .profile-hero::before { top: 139px; }
   .profile-radar { top: 24px; right: 0; width: 230px; height: 230px; }
   .radar-ring-outer { width: 210px; height: 210px; }
   .radar-ring-inner, .radar-core { width: 150px; height: 150px; }
