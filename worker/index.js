@@ -154,7 +154,27 @@ async function me(request, env, headers) {
 
 async function findByCode(code, env, headers) {
   const user = await env.DB.prepare("SELECT id, username, friend_code FROM users WHERE friend_code = ?1").bind(code).first();
-  return json({ user: user ? { id: user.id, username: user.username, friendCode: user.friend_code } : null }, 200, headers);
+  if (!user) return json({ user: null }, 200, headers);
+  const progress = await getUserProgress(user.id, env);
+  return json({ user: { id: user.id, username: user.username, friendCode: user.friend_code, ...progress } }, 200, headers);
+}
+
+async function getUserProgress(userId, env) {
+  const [rated, available] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count FROM ratings WHERE user_id = ?1").bind(userId).first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM episode_catalog WHERE air_date IS NULL OR air_date = '' OR substr(air_date, 1, 10) <= date('now')").first(),
+  ]);
+  const ratedCount = Number(rated?.count || 0);
+  const availableCount = Number(available?.count || 0);
+  const percent = availableCount ? (ratedCount / availableCount) * 100 : 0;
+  const ranks = [
+    [90, "LPD", "Leitende Polizeidirektorin"], [80, "PD", "Polizeidirektorin"], [70, "POR", "Polizeioberrätin"],
+    [60, "PR", "Polizeirätin"], [50, "EPHK", "Erste Polizeihauptkommissarin"], [40, "PHK", "Polizeihauptkommissarin"],
+    [30, "POK", "Polizeioberkommissarin"], [25, "PK", "Polizeikommissarin"], [20, "PKA", "Polizeikommissaranwärterin"],
+    [15, "PHM", "Polizeihauptmeisterin"], [10, "POM", "Polizeiobermeisterin"], [5, "PM", "Polizeimeisterin"], [0, "PMA", "Polizeimeisteranwärterin"],
+  ];
+  const rank = ranks.find(([threshold]) => percent >= threshold);
+  return { ratedCount, availableCount, percent: Number(percent.toFixed(1)), rankShort: rank[1], rankTitle: rank[2] };
 }
 
 async function episodeActivity(episodeId, env, headers) {

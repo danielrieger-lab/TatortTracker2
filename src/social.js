@@ -21,8 +21,13 @@ form.addEventListener("submit", async (event) => {
       return;
     }
     const name = document.createElement("strong");
-    name.textContent = data.user.username;
-    result.replaceChildren(name);
+    name.textContent = `[${data.user.rankShort}] ${data.user.username}`;
+    const rank = document.createElement("span");
+    rank.className = "social-rank-title";
+    rank.textContent = data.user.rankTitle;
+    const progress = document.createElement("small");
+    progress.textContent = `${String(data.user.percent).replace(".", ",")} % · ${data.user.ratedCount}/${data.user.availableCount} Fällen`;
+    result.replaceChildren(name, rank, progress);
     result.hidden = false;
     status.textContent = "Gefunden.";
   } catch (error) {
