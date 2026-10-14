@@ -78,7 +78,7 @@ async function loadProfile() {
     profileData = stats;
     document.querySelector("#profile-username").textContent = `${me.user.rankShort} ${me.user.username}`;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
-    document.querySelector("#profile-friend-code").textContent = `Freundescode ${me.user.friendCode}`;
+      document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = Number(stats.overview.rated || 0);
     document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
