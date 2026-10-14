@@ -148,13 +148,13 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .profile-page { min-height: 100vh; background: #32175a; }
-.profile-shell { width: min(100%, 768px); min-height: 100vh; margin: 0 auto; padding: 0 32px 116px; color: #ffffff; font-family: "Futura Light", "Futura", sans-serif; }
+.profile-shell { width: min(100%, 768px); max-width: 100%; min-height: 100vh; margin: 0 auto; padding: 0 32px 116px; color: #ffffff; font-family: "Futura Light", "Futura", sans-serif; overflow-x: hidden; }
 .profile-hero { position: relative; min-height: 482px; overflow: hidden; padding: 106px 0 80px 46px; }
 .profile-summary { position: relative; z-index: 2; max-width: 330px; }
 .profile-summary strong { display: block; font: 900 3.1rem/1 "Futura Black", sans-serif; }
 .profile-summary span { display: block; margin-top: 14px; font-size: 1.8rem; line-height: 1.1; }
 .profile-summary h1 { margin-top: 88px; font-size: 1.8rem; line-height: 1; }
-.profile-summary p { margin: 6px 0 0; font-size: 1.45rem; line-height: 1.2; }
+.profile-summary p { max-width: 100%; margin: 6px 0 0; font-size: 1.45rem; line-height: 1.2; overflow-wrap: anywhere; }
 .profile-summary p + p { font-size: 1rem; }
 .profile-radar { position: absolute; top: 74px; right: -4px; width: 360px; height: 360px; }
 .radar-ring, .radar-cross { position: absolute; display: block; }
@@ -165,7 +165,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .radar-cross-horizontal { top: calc(50% - 1.5px); left: 0; width: 100%; height: 3px; }
 .radar-cross-vertical { top: 0; left: calc(50% - 1.5px); width: 3px; height: 100%; }
 .radar-core { position: absolute; left: 50%; top: 50%; width: 226px; height: 226px; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); }
-.profile-menu { position: relative; z-index: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 52px 24px; margin: 0; padding: 76px 50px 144px; border-radius: 28px 28px 0 0; background: #5a4079; }
+.profile-menu { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 52px 24px; margin: 0; padding: 76px 50px 144px; border-radius: 28px 28px 0 0; background: #5a4079; overflow: hidden; }
 .profile-menu button { padding: 0; border: 0; color: #ffffff; background: transparent; font: 1.65rem/1.1 "Futura Light", sans-serif; text-align: left; cursor: pointer; }
 .profile-menu button.is-active { font-family: "Futura Black", sans-serif; }
 .profile-detail { position: relative; z-index: 3; margin: -112px 24px 0; padding: 20px; border-radius: 18px; background: #9f75ce; color: #291344; }
@@ -173,7 +173,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .profile-result-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(41,19,68,0.2); font-size: 0.95rem; }
 .profile-result-row:last-child { border-bottom: 0; }
 .profile-result-row strong { white-space: nowrap; }
-.profile-nav { position: fixed; z-index: 5; bottom: 28px; left: 50%; display: flex; justify-content: space-around; width: min(calc(100% - 64px), 640px); padding: 12px 34px; border-radius: 30px; background: #a276cf; transform: translateX(-50%); }
+.profile-nav { position: fixed; z-index: 5; bottom: 28px; left: 50%; display: flex; justify-content: space-around; width: min(calc(100% - 64px), 640px); max-width: calc(100vw - 32px); padding: 12px 34px; border-radius: 30px; background: #a276cf; transform: translateX(-50%); }
 .profile-nav a { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: #2e1456; font: 900 2rem/1 sans-serif; text-decoration: none; }
 .profile-nav a.is-active { background: rgba(46,20,86,0.18); }
 .profile-status { min-height: 1.4em; margin: 16px 0 0; text-align: center; }
@@ -208,7 +208,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .finder-form { grid-template-columns: 1fr; }
   .finder-form input { max-width: none; }
   .stats-grid { grid-template-columns: 1fr; }
-  .profile-shell { padding: 0 0 108px; }
+  .profile-shell { width: 100%; padding: 0 0 108px; }
   .profile-hero { min-height: 430px; padding: 72px 0 54px 32px; }
   .profile-summary strong { font-size: 2.6rem; }
   .profile-summary span { font-size: 1.25rem; }
@@ -217,10 +217,10 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .profile-radar { top: 58px; right: -92px; width: 290px; height: 290px; }
   .radar-ring-outer { width: 250px; height: 250px; }
   .radar-ring-inner, .radar-core { width: 180px; height: 180px; }
-  .profile-menu { gap: 44px 14px; padding: 62px 32px 132px; border-radius: 24px 24px 0 0; }
+  .profile-menu { gap: 44px 14px; padding: 62px 24px 132px; border-radius: 24px 24px 0 0; }
   .profile-menu button { font-size: 1.18rem; }
   .profile-detail { margin: -100px 18px 0; }
-  .profile-nav { bottom: 18px; width: calc(100% - 64px); }
+  .profile-nav { bottom: 18px; width: calc(100% - 32px); padding-right: 18px; padding-left: 18px; }
   .social-shell { padding: 0 20px 108px; }
   .social-header { padding-top: 52px; }
   .social-panel form { grid-template-columns: 1fr; }
