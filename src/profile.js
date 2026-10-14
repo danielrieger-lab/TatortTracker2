@@ -4,9 +4,6 @@ const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v2";
 const status = document.querySelector("#profile-status");
 const detailTitle = document.querySelector("#profile-detail-title");
 const detailContent = document.querySelector("#profile-detail-content");
-const statModal = document.querySelector("#profile-stat-modal");
-const statModalTitle = document.querySelector("#profile-stat-title");
-const statModalList = document.querySelector("#profile-stat-list");
 let profileData;
 
 async function request(path) {
@@ -55,14 +52,6 @@ function renderSection(section) {
   const sectionData = profileData.sections[section] || profileData.sections.best;
   detailTitle.textContent = sectionData.title;
   renderList(sectionData.items, (item) => item.label);
-  statModalTitle.textContent = sectionData.title;
-  statModalList.replaceChildren(...sectionData.items.map((item, index) => {
-    const row = document.createElement("div"); row.className = "profile-stat-row";
-    const label = document.createElement("span"); label.textContent = `${index + 1}. ${item.label}`;
-    const score = document.createElement("strong"); score.textContent = `${Number(item.score).toFixed(1)}/5`;
-    row.append(label, score); return row;
-  }));
-  statModal.hidden = false;
 }
 
 function calculateProfileStatistics(ratings, episodes) {
@@ -139,7 +128,5 @@ document.querySelectorAll("[data-profile-section]").forEach((button) => button.a
   document.querySelectorAll("[data-profile-section]").forEach((item) => item.classList.toggle("is-active", item === button));
   renderSection(button.dataset.profileSection);
 }));
-
-document.querySelectorAll("[data-close-profile-stat]").forEach((element) => element.addEventListener("click", () => { statModal.hidden = true; }));
 
 loadProfile();

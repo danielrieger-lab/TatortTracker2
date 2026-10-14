@@ -170,14 +170,6 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .profile-menu button { padding: 0; border: 0; color: #ffffff; background: transparent; font: 1.65rem/1.1 "Futura Light", sans-serif; text-align: left; cursor: pointer; }
 .profile-menu button.is-active { font-family: "Futura Black", sans-serif; }
 .profile-detail { position: relative; z-index: 3; margin: -112px 24px 0; padding: 20px; border-radius: 18px; background: #9f75ce; color: #291344; }
-.profile-stat-modal[hidden] { display: none; }
-.profile-stat-modal { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px; }
-.profile-stat-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.78); }
-.profile-stat-dialog { position: relative; width: min(620px, calc(100% - 24px)); max-height: 80vh; overflow: auto; padding: 20px; border-radius: 16px; background: #5a4079; color: #ffffff; }
-.profile-stat-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.profile-stat-header h2 { margin: 0; font: 900 1.3rem/1.1 "Futura Black", sans-serif; }
-.profile-stat-close { border: 0; color: #ffffff; background: transparent; font-size: 2rem; cursor: pointer; }
-.profile-stat-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
 .profile-detail h2 { margin: 0 0 14px; font: 900 1.25rem/1.1 "Futura Black", sans-serif; }
 .profile-result-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(41,19,68,0.2); font-size: 0.95rem; }
 .profile-result-row:last-child { border-bottom: 0; }
