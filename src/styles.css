@@ -154,10 +154,11 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .profile-shell { width: min(100%, 768px); max-width: 100%; min-height: 100vh; margin: 0 auto; padding: 0 32px 116px; color: #ffffff; font-family: "Futura Light", "Futura", sans-serif; overflow-x: hidden; }
 .profile-hero { position: relative; width: 100%; max-width: 100%; min-width: 0; min-height: 406px; overflow: hidden; padding: 40px 0 80px 24px; }
 .profile-summary { position: relative; z-index: 2; max-width: 330px; }
-.profile-summary strong { display: block; font: 900 3.1rem/1 "Futura Black", sans-serif; }
+.profile-summary > strong { display: block; font: 900 2.2rem/1 "Futura Black", sans-serif; }
 .profile-summary span { display: block; margin-top: 14px; font-size: 1.8rem; line-height: 1.1; }
 .profile-summary p:first-of-type { margin-top: 78px; }
-.profile-summary #profile-username { font-family: "Futura Black", "Futura", sans-serif; font-weight: 900; }
+.profile-summary #profile-username { font-family: "Futura Light", "Futura", sans-serif; font-weight: 300; }
+.profile-summary #profile-username-name { font-family: "Futura Black", "Futura", sans-serif; font-weight: 900; }
 .profile-summary p { max-width: 100%; margin: 6px 0 0; font-size: 1.45rem; line-height: 1.2; overflow-wrap: anywhere; }
 .profile-summary p + p { font-size: 1rem; }
 .profile-radar { position: absolute; top: 32px; right: 32px; width: 300px; height: 300px; }
@@ -225,7 +226,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
   .profile-shell { width: 100%; padding: 0 0 108px; }
   .profile-page { --profile-line-y: 115px; }
   .profile-hero { min-height: 240px; padding: 10px 0 54px 14px; }
-  .profile-summary strong { font-size: 2.15rem; }
+  .profile-summary > strong { font-size: 1.55rem; }
   .profile-summary span { font-size: 1.25rem; }
   .profile-summary { max-width: 220px; }
   .profile-summary p { font-size: 0.98rem; }

@@ -40,7 +40,8 @@ async function loadProfile() {
       window.location.replace("index.html");
       return;
     }
-    document.querySelector("#profile-username").textContent = `${me.user.rankShort} ${me.user.username}`;
+    document.querySelector("#profile-rank-short").textContent = me.user.rankShort;
+    document.querySelector("#profile-username-name").textContent = me.user.username;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
@@ -160,6 +161,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=46", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=47", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
