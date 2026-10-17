@@ -12,6 +12,9 @@ body {
   overflow-x: hidden;
 }
 
+.index-page { background: #32175a; }
+.index-page .panel { border-color: transparent; background: transparent; backdrop-filter: none; }
+
 .shell {
   width: min(100% - 32px, 1120px);
   min-width: 0;
