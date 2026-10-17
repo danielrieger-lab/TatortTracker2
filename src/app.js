@@ -19,6 +19,9 @@ const EPISODE_CACHE_KEY = "tatorttracker.episodes.v1";
 const REVIEW_DRAFT_KEY = "tatorttracker.review-draft.v1";
 const FULL_CATALOG_SOURCE = "data/tatort-episodes.json";
 let allEpisodes = [];
+const importRatingsButton = document.querySelector("#import-ratings-button");
+const importRatingsFile = document.querySelector("#import-ratings-file");
+const importRatingsStatus = document.querySelector("#import-ratings-status");
 
 async function request(path, options = {}) {
   const token = localStorage.getItem(SESSION_TOKEN_KEY);
@@ -296,6 +299,50 @@ async function loadEpisodes() {
 }
 
 document.querySelector("#refresh-episodes").addEventListener("click", loadEpisodes);
+
+importRatingsButton.addEventListener("click", () => importRatingsFile.click());
+importRatingsFile.addEventListener("change", async () => {
+  const file = importRatingsFile.files?.[0];
+  if (!file) return;
+  importRatingsStatus.textContent = "Bewertungen werden importiert ...";
+  try {
+    if (!allEpisodes.length) await loadEpisodes();
+    const backup = JSON.parse(await file.text());
+    const rawRatings = backup.localStorage?.["tatort-tracker-ratings-v1"];
+    if (!rawRatings) throw new Error("Keine alten Bewertungen gefunden.");
+    const legacyRatings = typeof rawRatings === "string" ? JSON.parse(rawRatings) : rawRatings;
+    const episodesById = new Map(allEpisodes.map((episode) => [String(episode.id), episode]));
+    let imported = 0;
+    let skipped = 0;
+    for (const [oldId, legacy] of Object.entries(legacyRatings)) {
+      const episode = episodesById.get(String(oldId));
+      if (!episode) { skipped += 1; continue; }
+      const value = (key) => Math.max(1, Math.min(10, Math.round(Number(legacy[key] || 2.5) * 2)));
+      const details = {
+        episodeId: episode.id,
+        fallQuality: value("fallqualitaet"),
+        teamRating: value("team"),
+        directionRating: value("inszenierung"),
+        tension: value("spannung"),
+        scary: value("gruselig"),
+        watchCount: Math.max(1, Number(legacy.anzahl) || 1),
+        watchedDate: null,
+        favoriteCharacter: "",
+        leastFavoriteCharacter: "",
+        notes: "Import aus dem alten TatortTracker",
+      };
+      details.score = Math.round((details.fallQuality + details.teamRating + details.directionRating + details.tension) / 4);
+      await request("/ratings", { method: "POST", body: JSON.stringify(details) });
+      imported += 1;
+    }
+    await loadRatings();
+    importRatingsStatus.textContent = `${imported} Bewertungen importiert${skipped ? `, ${skipped} übersprungen` : ""}.`;
+  } catch (error) {
+    importRatingsStatus.textContent = error.message || "Import fehlgeschlagen.";
+  } finally {
+    importRatingsFile.value = "";
+  }
+});
 document.querySelector("#episode-search").addEventListener("input", renderFilteredEpisodes);
 
 document.querySelectorAll("[data-mode]").forEach((button) => {

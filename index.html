@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
     <link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
-    <link rel="stylesheet" href="src/styles.css?v=40" />
+    <link rel="stylesheet" href="src/styles.css?v=41" />
     <title>TatortTracker2</title>
   </head>
   <body class="index-page">
@@ -69,6 +69,11 @@
           </div>
           <button id="refresh-episodes" class="quiet-button" type="button">Aktualisieren</button>
         </div>
+        <div class="ratings-import">
+          <button id="import-ratings-button" class="secondary-button" type="button">Alte Bewertungen importieren</button>
+          <input id="import-ratings-file" type="file" accept="application/json,.json" hidden />
+          <p id="import-ratings-status" class="form-status" role="status"></p>
+        </div>
         <label for="episode-search">Suche nach Nummer, Titel, Jahr, Ermittler oder Ort</label>
         <input id="episode-search" type="search" placeholder="Tatort-Folge suchen ..." autocomplete="off" />
         <p id="episodes-status" class="form-status" role="status"></p>
@@ -116,6 +121,6 @@
         <div id="modal-body" class="modal-body"></div>
       </section>
     </div>
-    <script type="module" src="src/app.js?v=32"></script>
+    <script type="module" src="src/app.js?v=33"></script>
   </body>
 </html>
