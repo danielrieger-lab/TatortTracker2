@@ -314,10 +314,28 @@ importRatingsFile.addEventListener("change", async () => {
     const episodesById = new Map(allEpisodes.map((episode) => [String(episode.id), episode]));
     let imported = 0;
     let skipped = 0;
+    let commentsImported = 0;
+    const repairLegacyText = (value) => {
+      if (!/[ÃÂâ]/.test(value) || [...value].some((character) => character.charCodeAt(0) > 255)) return value;
+      const repaired = new TextDecoder("utf-8").decode(Uint8Array.from(value, (character) => character.charCodeAt(0)));
+      return repaired.includes("\uFFFD") ? value : repaired;
+    };
+    const firstValue = (entry, keys) => keys.map((key) => entry[key]).find((value) => value !== undefined && value !== null && value !== "");
+    const textValue = (entry, keys) => {
+      const value = firstValue(entry, keys);
+      return typeof value === "string" ? repairLegacyText(value.trim()) : "";
+    };
+    const dateValue = (entry) => {
+      const value = textValue(entry, ["zuerstGesehen", "watchedDate", "firstSeen", "firstSeenDate", "zuerstgesehen", "erstmalsgesehen", "erstmalsGesehen"]);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      const germanDate = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      return germanDate ? `${germanDate[3]}-${germanDate[2].padStart(2, "0")}-${germanDate[1].padStart(2, "0")}` : null;
+    };
     for (const [oldId, legacy] of Object.entries(legacyRatings)) {
       const episode = episodesById.get(String(oldId));
       if (!episode) { skipped += 1; continue; }
       const value = (key) => Math.max(1, Math.min(10, Math.round(Number(legacy[key] || 2.5) * 2)));
+      const comment = textValue(legacy, ["kommentare", "comment", "comments", "kommentar"]);
       const details = {
         episodeId: episode.id,
         fallQuality: value("fallqualitaet"),
@@ -326,17 +344,21 @@ importRatingsFile.addEventListener("change", async () => {
         tension: value("spannung"),
         scary: value("gruselig"),
         watchCount: Math.max(1, Number(legacy.anzahl) || 1),
-        watchedDate: null,
-        favoriteCharacter: "",
-        leastFavoriteCharacter: "",
+        watchedDate: dateValue(legacy),
+        favoriteCharacter: textValue(legacy, ["mostLovedCharacter", "favoriteCharacter", "favouriteCharacter", "lieblingscharakter", "lieblingsCharakter", "beliebtesterCharakter"]),
+        leastFavoriteCharacter: textValue(legacy, ["mostHatedCharacter", "leastFavoriteCharacter", "hasscharakter", "hassCharakter", "unbeliebtesterCharakter"]),
         notes: "Import aus dem alten TatortTracker",
       };
       details.score = Math.round((details.fallQuality + details.teamRating + details.directionRating + details.tension) / 4);
       await request("/ratings", { method: "POST", body: JSON.stringify(details) });
+      if (comment) {
+        await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment }) });
+        commentsImported += 1;
+      }
       imported += 1;
     }
     await loadRatings();
-    importRatingsStatus.textContent = `${imported} Bewertungen importiert${skipped ? `, ${skipped} übersprungen` : ""}.`;
+    importRatingsStatus.textContent = `${imported} Bewertungen importiert${commentsImported ? `, ${commentsImported} Kommentare importiert` : ""}${skipped ? `, ${skipped} übersprungen` : ""}.`;
   } catch (error) {
     importRatingsStatus.textContent = error.message || "Import fehlgeschlagen.";
   } finally {
