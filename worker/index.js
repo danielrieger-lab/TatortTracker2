@@ -295,12 +295,12 @@ async function statistics(request, env, headers) {
   const ratings = rows.results || [];
   const average = (key) => ratings.length ? Number((ratings.reduce((sum, item) => sum + Number(item[key] || 0), 0) / ratings.length).toFixed(1)) : null;
   const rank = (key, limit = 10) => ratings.filter((item) => item[key]).sort((a, b) => Number(b[key]) - Number(a[key])).slice(0, limit).map((item) => ({ title: item.title || item.id, score: item[key], id: item.id }));
-  const groups = (key) => Object.values(ratings.reduce((result, item) => {
+  const groups = (key, descending = true) => Object.values(ratings.reduce((result, item) => {
     const label = String(item[key] || "Unbekannt").trim();
     const group = result[label] || { label, total: 0, count: 0 };
     group.total += Number(item.score || 0); group.count += 1; result[label] = group; return result;
-  }, {})).map((group) => ({ label: group.label, score: Number((group.total / group.count).toFixed(1)), count: group.count })).sort((a, b) => b.score - a.score).slice(0, 10);
-  return json({ overview: { rated: ratings.length, watched: ratings.filter((item) => Number(item.watchCount) > 0).length, average: average("score") }, categories: { fallQuality: average("fallQuality"), team: average("teamRating"), direction: average("directionRating"), tension: average("tension"), scary: average("scary") }, best: rank("score"), worst: rank("score").reverse(), scary: rank("scary"), teams: groups("team"), cities: groups("location") }, 200, headers);
+  }, {})).map((group) => ({ label: group.label, score: Number((group.total / group.count).toFixed(1)), count: group.count })).sort((a, b) => (descending ? b.score - a.score : a.score - b.score)).slice(0, 10);
+  return json({ overview: { rated: ratings.length, watched: ratings.filter((item) => Number(item.watchCount) > 0).length, average: average("score") }, categories: { fallQuality: average("fallQuality"), team: average("teamRating"), direction: average("directionRating"), tension: average("tension"), scary: average("scary") }, best: rank("score"), worst: rank("score").reverse(), scary: rank("scary"), teams: groups("team"), worstTeams: groups("team", false), cities: groups("location") }, 200, headers);
 }
 
 async function listRatings(request, env, headers) {

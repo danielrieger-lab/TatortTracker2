@@ -20,14 +20,44 @@ async function loadStatistics() {
     }));
     renderRank("best-list", data.best, "score");
     renderRank("scary-list", data.scary, "score");
-    renderRank("team-list", data.teams, "score");
+    renderRank("team-list", data.teams, "score", true);
+    renderRank("worst-team-list", data.worstTeams, "score", true);
     renderRank("city-list", data.cities, "score");
   } catch (error) { status.textContent = error.message; }
 }
 
-function renderRank(id, items, key) {
+function renderRank(id, items, key, showTeamImages = false) {
   const list = document.querySelector(`#${id}`);
-  list.replaceChildren(...items.map((item) => { const row = document.createElement("li"); const label = document.createElement("span"); label.textContent = item.title || item.label; const score = document.createElement("strong"); score.textContent = `${item[key]}/10`; row.append(label, score); return row; }));
+  list.replaceChildren(...items.map((item) => {
+    const row = document.createElement("li");
+    const label = document.createElement("span");
+    const name = item.title || item.label;
+    if (showTeamImages) {
+      const image = document.createElement("img");
+      image.className = "rank-team-image";
+      image.src = `assets/teams/${teamImageSlug(name)}.webp`;
+      image.alt = name;
+      image.title = name;
+      image.onerror = () => { image.remove(); label.textContent = name; };
+      label.append(image);
+    } else {
+      label.textContent = name;
+    }
+    const score = document.createElement("strong");
+    score.textContent = `${item[key]}/10`;
+    row.append(label, score);
+    return row;
+  }));
+}
+
+function teamImageSlug(name) {
+  return String(name || "").toLocaleLowerCase("de-DE")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/&/g, " und ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 loadStatistics();
