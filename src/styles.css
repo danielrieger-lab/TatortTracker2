@@ -157,6 +157,7 @@ input:focus { outline: 2px solid #35185a; outline-offset: 2px; }
 .profile-summary strong { display: block; font: 900 3.1rem/1 "Futura Black", sans-serif; }
 .profile-summary span { display: block; margin-top: 14px; font-size: 1.8rem; line-height: 1.1; }
 .profile-summary p:first-of-type { margin-top: 78px; }
+.profile-summary #profile-username { font-family: "Futura Black", "Futura", sans-serif; font-weight: 900; }
 .profile-summary p { max-width: 100%; margin: 6px 0 0; font-size: 1.45rem; line-height: 1.2; overflow-wrap: anywhere; }
 .profile-summary p + p { font-size: 1rem; }
 .profile-radar { position: absolute; top: 32px; right: 32px; width: 300px; height: 300px; }
