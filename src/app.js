@@ -402,7 +402,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=38", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=39", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }
