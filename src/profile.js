@@ -86,7 +86,11 @@ function openStatistics(key) {
     if (showTeamImages) {
       const meta = document.createElement("span");
       meta.className = "profile-stat-team-meta";
-      meta.textContent = `${index + 1}. Platz - ${item.score.toFixed(1)}/5`;
+      const place = document.createElement("span");
+      place.textContent = `${index + 1}. Platz`;
+      const rating = document.createElement("span");
+      rating.textContent = `${item.score.toFixed(1)}/5`;
+      meta.append(place, rating);
       const image = document.createElement("img");
       image.className = "profile-stat-team-image";
       image.src = new URL(`${teamImageSlug(item.label)}.webp`, teamAssetBase).href;
@@ -153,6 +157,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=40", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=41", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
