@@ -48,6 +48,7 @@ async function loadProfile() {
     profileData = calculateStatistics(ratings.ratings, episodes.episodes);
     document.querySelector("#profile-count").textContent = `${rated} / ${totalEpisodes} Fällen`;
     document.querySelector("#profile-percent").textContent = `${totalEpisodes ? ((rated / totalEpisodes) * 100).toFixed(1).replace(".", ",") : "0,0"} %`;
+    document.querySelector("#profile-overall-average").textContent = profileData.overallAverage ? `${profileData.overallAverage.toFixed(1).replace(".", ",")}/5` : "-";
     status.textContent = "";
   } catch (error) {
     status.textContent = error.message;
@@ -69,8 +70,10 @@ function calculateStatistics(ratings, episodes) {
   };
   const rank = (items, descending = true) => items.filter((item) => item.score > 0).sort((a, b) => (descending ? b.score - a.score : a.score - b.score) || a.label.localeCompare(b.label, "de")).slice(0, 5);
   const cases = caseRows.filter((row) => row.score > 0).map((row) => ({ label: row.episode?.title || row.episodeId, score: row.score }));
-  const average = ["fallQuality", "teamRating", "directionRating", "tension", "scary"].map((key) => ({ label: key, score: ratings.length ? ratings.reduce((sum, rating) => sum + score(rating, key), 0) / ratings.length : 0 }));
-  return { best: rank(cases), worst: rank(cases, false), teams: rank(groupRows("team")), worstTeams: rank(groupRows("team"), false), cities: rank(groupRows("location")), worstCities: rank(groupRows("location"), false), average: rank(average), scary: rank(caseRows.map((row) => ({ label: row.episode?.title || "", score: row.scary }))) };
+  const averageLabels = { fallQuality: "Fallqualität", teamRating: "Team", directionRating: "Inszenierung", tension: "Spannung", scary: "Gruselig" };
+  const average = ["fallQuality", "teamRating", "directionRating", "tension", "scary"].map((key) => ({ label: averageLabels[key], score: ratings.length ? ratings.reduce((sum, rating) => sum + score(rating, key), 0) / ratings.length : 0 }));
+  const overallAverage = caseRows.length ? caseRows.reduce((sum, row) => sum + row.score, 0) / caseRows.length : 0;
+  return { best: rank(cases), worst: rank(cases, false), teams: rank(groupRows("team")), worstTeams: rank(groupRows("team"), false), cities: rank(groupRows("location")), worstCities: rank(groupRows("location"), false), average, overallAverage, scary: rank(caseRows.map((row) => ({ label: row.episode?.title || "", score: row.scary }))) };
 }
 
 function openStatistics(key) {
@@ -157,6 +160,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=41", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=42", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
