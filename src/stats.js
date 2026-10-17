@@ -52,13 +52,18 @@ function renderRank(id, items, key, showTeamImages = false) {
 }
 
 function teamImageSlug(name) {
-  return String(name || "").toLocaleLowerCase("de-DE")
+  const slug = String(name || "").toLocaleLowerCase("de-DE")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/ß/g, "ss")
     .replace(/&/g, " und ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+  return {
+    "odenthal-und-stern": "stern-und-odenthal",
+    "gorniak-schnabel-und-winkler": "gorniak-winkler-und-schnabel",
+    "moormann-andersen-und-selb": "moormann-und-selb",
+  }[slug] || slug;
 }
 
 loadStatistics();
