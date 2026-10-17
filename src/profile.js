@@ -80,6 +80,7 @@ function openStatistics(key) {
   statList.replaceChildren(...(profileData[key] || []).map((item, index) => {
     const row = document.createElement("div");
     row.className = "profile-stat-row";
+    if (showTeamImages) row.classList.add("profile-stat-team-row");
     const label = document.createElement("span");
     const name = `${index + 1}. ${item.label}`;
     if (showTeamImages) {
