@@ -1,5 +1,6 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const status = document.querySelector("#stats-status");
+const teamAssetBase = new URL("../assets/teams/", import.meta.url);
 
 async function loadStatistics() {
   try {
@@ -35,7 +36,7 @@ function renderRank(id, items, key, showTeamImages = false) {
     if (showTeamImages) {
       const image = document.createElement("img");
       image.className = "rank-team-image";
-      image.src = `assets/teams/${teamImageSlug(name)}.webp`;
+      image.src = new URL(`${teamImageSlug(name)}.webp`, teamAssetBase).href;
       image.alt = name;
       image.title = name;
       image.onerror = () => { image.remove(); label.textContent = name; };

@@ -1,4 +1,4 @@
-const CACHE_NAME = "tatorttracker2-v37";
+const CACHE_NAME = "tatorttracker2-v38";
 const ASSETS = [
   "./", "./index.html", "./profile.html", "./social.html", "./stats.html", "./manifest.webmanifest", "./src/app.js", "./src/profile.js", "./src/social.js", "./src/stats.js", "./src/styles.css",
   "./data/tatort-episodes.json", "./assets/fonts/futura-bold-webfont.woff2", "./assets/fonts/futurabt-light-webfont.woff2",
@@ -27,5 +27,14 @@ self.addEventListener("fetch", (event) => {
     }).catch(() => caches.match(event.request)));
     return;
   }
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+  event.respondWith(caches.match(event.request).then((cached) => {
+    if (cached) return cached;
+    return fetch(event.request).then((response) => {
+      if (event.request.destination === "image" && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      }
+      return response;
+    });
+  }));
 });

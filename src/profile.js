@@ -5,6 +5,7 @@ const status = document.querySelector("#profile-status");
 const statModal = document.querySelector("#profile-stat-modal");
 const statTitle = document.querySelector("#profile-stat-title");
 const statList = document.querySelector("#profile-stat-list");
+const teamAssetBase = new URL("../assets/teams/", import.meta.url);
 let profileData;
 
 async function request(path) {
@@ -84,7 +85,7 @@ function openStatistics(key) {
     if (showTeamImages) {
       const image = document.createElement("img");
       image.className = "profile-stat-team-image";
-      image.src = `assets/teams/${teamImageSlug(item.label)}.webp`;
+      image.src = new URL(`${teamImageSlug(item.label)}.webp`, teamAssetBase).href;
       image.alt = item.label;
       image.title = item.label;
       image.onerror = () => { image.remove(); label.textContent = name; };
@@ -142,6 +143,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=37", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=38", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
