@@ -84,19 +84,23 @@ function openStatistics(key) {
     const label = document.createElement("span");
     const name = `${index + 1}. ${item.label}`;
     if (showTeamImages) {
+      const meta = document.createElement("span");
+      meta.className = "profile-stat-team-meta";
+      meta.textContent = `${index + 1}. Platz - ${item.score.toFixed(1)}/5`;
       const image = document.createElement("img");
       image.className = "profile-stat-team-image";
       image.src = new URL(`${teamImageSlug(item.label)}.webp`, teamAssetBase).href;
       image.alt = item.label;
       image.title = item.label;
       image.onerror = () => { image.remove(); label.textContent = name; };
-      label.append(image);
+      label.append(meta, image);
     } else {
       label.textContent = name;
     }
     const score = document.createElement("strong");
     score.textContent = `${item.score.toFixed(1)}/5`;
-    row.append(label, score);
+    row.append(label);
+    if (!showTeamImages) row.append(score);
     return row;
   }));
   statModal.hidden = false;
@@ -149,6 +153,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=39", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=40", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
