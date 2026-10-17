@@ -74,7 +74,40 @@ function calculateStatistics(ratings, episodes) {
 
 function openStatistics(key) {
   const labels = { best: "Beste Fälle", worst: "Schlechteste Fälle", teams: "Beste Teams", worstTeams: "Schlechteste Teams", cities: "Beste Städte", worstCities: "Schlechteste Städte", average: "Durchschnitt", scary: "Gruseligste Fälle" };
-  statTitle.textContent = labels[key]; statList.replaceChildren(...(profileData[key] || []).map((item, index) => { const row = document.createElement("div"); row.className = "profile-stat-row"; row.innerHTML = `<span>${index + 1}. ${item.label}</span><strong>${item.score.toFixed(1)}/5</strong>`; return row; })); statModal.hidden = false;
+  const showTeamImages = key === "teams" || key === "worstTeams";
+  statTitle.textContent = labels[key];
+  statList.replaceChildren(...(profileData[key] || []).map((item, index) => {
+    const row = document.createElement("div");
+    row.className = "profile-stat-row";
+    const label = document.createElement("span");
+    const name = `${index + 1}. ${item.label}`;
+    if (showTeamImages) {
+      const image = document.createElement("img");
+      image.className = "profile-stat-team-image";
+      image.src = `assets/teams/${teamImageSlug(item.label)}.webp`;
+      image.alt = item.label;
+      image.title = item.label;
+      image.onerror = () => { image.remove(); label.textContent = name; };
+      label.append(image);
+    } else {
+      label.textContent = name;
+    }
+    const score = document.createElement("strong");
+    score.textContent = `${item.score.toFixed(1)}/5`;
+    row.append(label, score);
+    return row;
+  }));
+  statModal.hidden = false;
+}
+
+function teamImageSlug(name) {
+  return String(name || "").toLocaleLowerCase("de-DE")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/&/g, " und ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 async function getBroadcastedEpisodeCount(episodes) {
@@ -109,6 +142,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=35", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=36", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }
