@@ -7,6 +7,30 @@ const statTitle = document.querySelector("#profile-stat-title");
 const statList = document.querySelector("#profile-stat-list");
 const teamAssetBase = new URL("../assets/teams/", import.meta.url);
 let profileData;
+const avatarButton = document.querySelector("#profile-avatar");
+const avatarFile = document.querySelector("#profile-avatar-file");
+const avatarImage = document.querySelector("#profile-avatar-image");
+const avatarPlaceholder = document.querySelector("#profile-avatar-placeholder");
+const avatarModal = document.querySelector("#profile-avatar-modal");
+const cropImage = document.querySelector("#profile-crop-image");
+const cropZoom = document.querySelector("#profile-crop-zoom");
+const cropX = document.querySelector("#profile-crop-x");
+const cropY = document.querySelector("#profile-crop-y");
+const avatarStatus = document.querySelector("#profile-avatar-status");
+let selectedImageUrl = "";
+
+async function uploadProfilePicture(profilePicture) {
+  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  const response = await fetch(`${API_BASE}/profile-picture`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ profilePicture }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Profilbild konnte nicht gespeichert werden.");
+  return data;
+}
 
 async function request(path) {
   const token = localStorage.getItem(SESSION_TOKEN_KEY);
@@ -44,6 +68,7 @@ async function loadProfile() {
     document.querySelector("#profile-username-name").textContent = me.user.username;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
+    setProfilePicture(me.user.profilePicture);
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = ratings.ratings.length;
     profileData = calculateStatistics(ratings.ratings, episodes.episodes);
@@ -56,6 +81,73 @@ async function loadProfile() {
     document.querySelector("#profile-username").textContent = "Nicht angemeldet";
   }
 }
+
+function setProfilePicture(profilePicture) {
+  if (profilePicture) {
+    avatarImage.src = profilePicture;
+    avatarImage.hidden = false;
+    avatarPlaceholder.hidden = true;
+    avatarButton.setAttribute("aria-label", "Profilbild ändern");
+  } else {
+    avatarImage.removeAttribute("src");
+    avatarImage.hidden = true;
+    avatarPlaceholder.hidden = false;
+    avatarButton.setAttribute("aria-label", "Profilbild hinzufügen");
+  }
+}
+
+function updateCropPreview() {
+  cropImage.style.objectPosition = `${cropX.value}% ${cropY.value}%`;
+  cropImage.style.transform = `scale(${cropZoom.value})`;
+}
+
+function closeAvatarModal() {
+  avatarModal.hidden = true;
+  if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
+  selectedImageUrl = "";
+}
+
+avatarButton.addEventListener("click", () => avatarFile.click());
+avatarFile.addEventListener("change", () => {
+  const file = avatarFile.files?.[0];
+  if (!file) return;
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+    status.textContent = "Bitte waehle ein JPG-, PNG- oder WebP-Bild bis 8 MB.";
+    avatarFile.value = "";
+    return;
+  }
+  selectedImageUrl = URL.createObjectURL(file);
+  cropImage.src = selectedImageUrl;
+  cropZoom.value = "1";
+  cropX.value = "50";
+  cropY.value = "50";
+  updateCropPreview();
+  avatarStatus.textContent = "";
+  avatarModal.hidden = false;
+});
+[cropZoom, cropX, cropY].forEach((input) => input.addEventListener("input", updateCropPreview));
+document.querySelectorAll("[data-close-profile-avatar]").forEach((element) => element.addEventListener("click", closeAvatarModal));
+document.querySelector("#profile-avatar-save").addEventListener("click", async () => {
+  if (!cropImage.naturalWidth) return;
+  avatarStatus.textContent = "Wird gespeichert ...";
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  const sourceSize = Math.min(cropImage.naturalWidth, cropImage.naturalHeight) / Number(cropZoom.value);
+  const sourceX = (cropImage.naturalWidth - sourceSize) * Number(cropX.value) / 100;
+  const sourceY = (cropImage.naturalHeight - sourceSize) * Number(cropY.value) / 100;
+  context.drawImage(cropImage, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 256, 256);
+  try {
+    const data = await uploadProfilePicture(canvas.toDataURL("image/jpeg", 0.82));
+    setProfilePicture(data.profilePicture);
+    closeAvatarModal();
+    avatarFile.value = "";
+    status.textContent = "Profilbild gespeichert.";
+  } catch (error) {
+    avatarStatus.textContent = error.message;
+  }
+});
 
 function calculateStatistics(ratings, episodes) {
   const episodesById = new Map(episodes.map((episode) => [String(episode.id), episode]));

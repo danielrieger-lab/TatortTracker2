@@ -32,6 +32,9 @@ export default {
       if (url.pathname === "/api/me" && request.method === "GET") {
         return me(request, env, headers);
       }
+      if (url.pathname === "/api/profile-picture" && request.method === "PUT") {
+        return saveProfilePicture(request, env, headers);
+      }
       const codeMatch = url.pathname.match(/^\/api\/users\/by-code\/(\d{4})$/);
       if (codeMatch && request.method === "GET") {
         return findByCode(codeMatch[1], env, headers);
@@ -150,6 +153,16 @@ async function me(request, env, headers) {
   const authorization = request.headers.get("Authorization") || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   return json({ user: { ...user, ...await getUserProgress(user.id, env) }, token }, 200, headers);
+}
+
+async function saveProfilePicture(request, env, headers) {
+  const user = await authenticatedUser(request, env);
+  if (!user) return json({ error: "Authentication required." }, 401, headers);
+  const body = await readJson(request);
+  const profilePicture = cleanProfilePicture(body.profilePicture);
+  if (profilePicture === null) return json({ error: "Please provide a valid cropped image." }, 400, headers);
+  await env.DB.prepare("UPDATE users SET profile_picture = ?1 WHERE id = ?2").bind(profilePicture, user.id).run();
+  return json({ ok: true, profilePicture }, 200, headers);
 }
 
 async function findByCode(code, env, headers) {
@@ -425,7 +438,7 @@ async function authenticatedUser(request, env) {
   const bearer = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   const token = bearer || getCookie(request.headers.get("Cookie"), SESSION_COOKIE);
   if (!token) return null;
-  const row = await env.DB.prepare("SELECT users.id, users.username, users.friend_code, users.is_admin FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND sessions.expires_at > datetime('now')")
+  const row = await env.DB.prepare("SELECT users.id, users.username, users.friend_code, users.is_admin, users.profile_picture AS profilePicture FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND sessions.expires_at > datetime('now')")
     .bind(await digest(token)).first();
   return row ? { id: row.id, username: row.username, friendCode: row.friend_code, isAdmin: Boolean(row.is_admin) } : null;
 }
@@ -450,6 +463,9 @@ function cleanRating(value) { const rating = Number(value ?? 3); return Number.i
 function cleanCount(value) { const count = Number(value ?? 1); return Number.isInteger(count) && count >= 1 && count <= 999 ? count : null; }
 function cleanDate(value) { return value === "" || value == null || (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) ? (value || null) : null; }
 function cleanText(value, max) { return value == null || value === "" ? "" : typeof value === "string" && value.length <= max ? value.trim() : null; }
+function cleanProfilePicture(value) {
+  return typeof value === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(value) && value.length <= 350000 ? value : null;
+}
 function cleanReportType(value) { return ["user", "comment", "episode"].includes(value) ? value : ""; }
 function randomCode() {
   const bytes = new Uint32Array(1);
