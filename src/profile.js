@@ -98,8 +98,11 @@ function setProfilePicture(profilePicture) {
 }
 
 function updateCropPreview() {
+  const zoom = Number(cropZoom.value);
+  const offsetX = (50 - cropPosition.x) * (zoom - 1);
+  const offsetY = (50 - cropPosition.y) * (zoom - 1);
   cropImage.style.objectPosition = `${cropPosition.x}% ${cropPosition.y}%`;
-  cropImage.style.transform = `scale(${cropZoom.value})`;
+  cropImage.style.transform = `translate(${offsetX}%, ${offsetY}%) scale(${zoom})`;
 }
 
 function closeAvatarModal() {
@@ -133,7 +136,7 @@ cropFrame.addEventListener("pointerdown", (event) => {
 });
 cropFrame.addEventListener("pointermove", (event) => {
   if (!dragState || event.pointerId !== dragState.pointerId) return;
-  const scale = 100 / cropFrame.clientWidth;
+  const scale = 100 / cropFrame.clientWidth / Math.max(0.05, Number(cropZoom.value) - 1);
   cropPosition.x = Math.max(0, Math.min(100, dragState.startX - (event.clientX - dragState.x) * scale));
   cropPosition.y = Math.max(0, Math.min(100, dragState.startY - (event.clientY - dragState.y) * scale));
   updateCropPreview();
