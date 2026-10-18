@@ -12,12 +12,13 @@ const avatarFile = document.querySelector("#profile-avatar-file");
 const avatarImage = document.querySelector("#profile-avatar-image");
 const avatarPlaceholder = document.querySelector("#profile-avatar-placeholder");
 const avatarModal = document.querySelector("#profile-avatar-modal");
+const cropFrame = document.querySelector("#profile-crop-frame");
 const cropImage = document.querySelector("#profile-crop-image");
 const cropZoom = document.querySelector("#profile-crop-zoom");
-const cropX = document.querySelector("#profile-crop-x");
-const cropY = document.querySelector("#profile-crop-y");
 const avatarStatus = document.querySelector("#profile-avatar-status");
 let selectedImageUrl = "";
+let cropPosition = { x: 50, y: 50 };
+let dragState = null;
 
 async function uploadProfilePicture(profilePicture) {
   const token = localStorage.getItem(SESSION_TOKEN_KEY);
@@ -97,7 +98,7 @@ function setProfilePicture(profilePicture) {
 }
 
 function updateCropPreview() {
-  cropImage.style.objectPosition = `${cropX.value}% ${cropY.value}%`;
+  cropImage.style.objectPosition = `${cropPosition.x}% ${cropPosition.y}%`;
   cropImage.style.transform = `scale(${cropZoom.value})`;
 }
 
@@ -119,27 +120,51 @@ avatarFile.addEventListener("change", () => {
   selectedImageUrl = URL.createObjectURL(file);
   cropImage.src = selectedImageUrl;
   cropZoom.value = "1";
-  cropX.value = "50";
-  cropY.value = "50";
+  cropPosition = { x: 50, y: 50 };
   updateCropPreview();
   avatarStatus.textContent = "";
   avatarModal.hidden = false;
 });
-[cropZoom, cropX, cropY].forEach((input) => input.addEventListener("input", updateCropPreview));
+cropZoom.addEventListener("input", updateCropPreview);
+cropFrame.addEventListener("pointerdown", (event) => {
+  dragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, startX: cropPosition.x, startY: cropPosition.y };
+  cropFrame.classList.add("is-dragging");
+  cropFrame.setPointerCapture(event.pointerId);
+});
+cropFrame.addEventListener("pointermove", (event) => {
+  if (!dragState || event.pointerId !== dragState.pointerId) return;
+  const scale = 100 / cropFrame.clientWidth;
+  cropPosition.x = Math.max(0, Math.min(100, dragState.startX - (event.clientX - dragState.x) * scale));
+  cropPosition.y = Math.max(0, Math.min(100, dragState.startY - (event.clientY - dragState.y) * scale));
+  updateCropPreview();
+});
+const stopDragging = (event) => {
+  if (!dragState || event.pointerId !== dragState.pointerId) return;
+  dragState = null;
+  cropFrame.classList.remove("is-dragging");
+};
+cropFrame.addEventListener("pointerup", stopDragging);
+cropFrame.addEventListener("pointercancel", stopDragging);
 document.querySelectorAll("[data-close-profile-avatar]").forEach((element) => element.addEventListener("click", closeAvatarModal));
 document.querySelector("#profile-avatar-save").addEventListener("click", async () => {
   if (!cropImage.naturalWidth) return;
   avatarStatus.textContent = "Wird gespeichert ...";
   const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = 192;
+  canvas.height = 192;
   const context = canvas.getContext("2d");
   const sourceSize = Math.min(cropImage.naturalWidth, cropImage.naturalHeight) / Number(cropZoom.value);
-  const sourceX = (cropImage.naturalWidth - sourceSize) * Number(cropX.value) / 100;
-  const sourceY = (cropImage.naturalHeight - sourceSize) * Number(cropY.value) / 100;
-  context.drawImage(cropImage, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 256, 256);
+  const sourceX = (cropImage.naturalWidth - sourceSize) * cropPosition.x / 100;
+  const sourceY = (cropImage.naturalHeight - sourceSize) * cropPosition.y / 100;
+  context.drawImage(cropImage, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 192, 192);
   try {
-    const data = await uploadProfilePicture(canvas.toDataURL("image/jpeg", 0.82));
+    let profilePicture = "";
+    for (const quality of [0.76, 0.64, 0.52, 0.4]) {
+      profilePicture = canvas.toDataURL("image/jpeg", quality);
+      if (profilePicture.length <= 340000) break;
+    }
+    if (profilePicture.length > 350000) throw new Error("Das Bild konnte nicht auf die erforderliche Größe komprimiert werden.");
+    const data = await uploadProfilePicture(profilePicture);
     setProfilePicture(data.profilePicture);
     closeAvatarModal();
     avatarFile.value = "";
