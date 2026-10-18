@@ -60,8 +60,9 @@ async function loadRatings() {
     const data = await request("/ratings");
     ratingsByEpisode = new Map(data.ratings.map((rating) => [String(rating.episodeId), rating]));
     renderFilteredEpisodes();
+    return true;
   } catch {
-    ratingsByEpisode = new Map();
+    return false;
   }
 }
 
@@ -127,9 +128,13 @@ function renderEpisode(episode) {
   line.append(title);
   if (episode.location) line.append(document.createTextNode(` (${episode.location})`));
   item.append(line);
-  item.addEventListener("click", () => openEpisodeModal(episode));
+  const openCurrentEpisode = async () => {
+    if (!await loadRatings()) return;
+    openEpisodeModal(episode);
+  };
+  item.addEventListener("click", openCurrentEpisode);
   item.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEpisodeModal(episode); }
+    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openCurrentEpisode(); }
   });
   return item;
 }
