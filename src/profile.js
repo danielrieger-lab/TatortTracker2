@@ -1,5 +1,6 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const SESSION_TOKEN_KEY = "tatorttracker.session-token";
+const PROFILE_PICTURE_CACHE_PREFIX = "tatorttracker.profile-picture.";
 const BROADCAST_COUNT_CACHE_KEY = "tatorttracker.broadcast-count.v2";
 const status = document.querySelector("#profile-status");
 const statModal = document.querySelector("#profile-stat-modal");
@@ -19,6 +20,7 @@ const avatarStatus = document.querySelector("#profile-avatar-status");
 let selectedImageUrl = "";
 let cropPosition = { x: 50, y: 50 };
 let dragState = null;
+let currentUserId = "";
 
 function getSessionToken() {
   try { return localStorage.getItem(SESSION_TOKEN_KEY) || ""; } catch { return ""; }
@@ -27,6 +29,17 @@ function getSessionToken() {
 function storeSessionToken(token) {
   if (!token) return;
   try { localStorage.setItem(SESSION_TOKEN_KEY, token); } catch { /* Cookie authentication remains available. */ }
+}
+
+function getCachedProfilePicture(userId) {
+  try { return localStorage.getItem(`${PROFILE_PICTURE_CACHE_PREFIX}${userId}`) || ""; } catch { return ""; }
+}
+
+function cacheProfilePicture(userId, profilePicture) {
+  try {
+    if (profilePicture) localStorage.setItem(`${PROFILE_PICTURE_CACHE_PREFIX}${userId}`, profilePicture);
+    else localStorage.removeItem(`${PROFILE_PICTURE_CACHE_PREFIX}${userId}`);
+  } catch { /* The server remains the source of truth. */ }
 }
 
 async function uploadProfilePicture(profilePicture) {
@@ -77,11 +90,14 @@ async function loadProfile() {
       window.location.replace("index.html");
       return;
     }
+    currentUserId = me.user.id;
     document.querySelector("#profile-rank-short").textContent = me.user.rankShort;
     document.querySelector("#profile-username-name").textContent = me.user.username;
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
-    setProfilePicture(me.user.profilePicture);
+    const profilePicture = me.user.profilePicture || getCachedProfilePicture(me.user.id);
+    setProfilePicture(profilePicture);
+    cacheProfilePicture(me.user.id, profilePicture);
       const [ratings, episodes] = await Promise.all([request("/ratings"), request("/episodes")]);
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = ratings.ratings.length;
@@ -182,6 +198,7 @@ document.querySelector("#profile-avatar-save").addEventListener("click", async (
     if (profilePicture.length > 350000) throw new Error("Das Bild konnte nicht auf die erforderliche Größe komprimiert werden.");
     const data = await uploadProfilePicture(profilePicture);
     setProfilePicture(data.profilePicture);
+    cacheProfilePicture(currentUserId, data.profilePicture);
     closeAvatarModal();
     avatarFile.value = "";
     status.textContent = "Profilbild gespeichert.";
