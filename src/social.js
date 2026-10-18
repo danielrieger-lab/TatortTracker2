@@ -4,11 +4,15 @@ const form = document.querySelector("#social-form");
 const status = document.querySelector("#social-status");
 const result = document.querySelector("#social-result");
 
+function getSessionToken() {
+  try { return localStorage.getItem(SESSION_TOKEN_KEY) || ""; } catch { return ""; }
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   status.textContent = "Suche ...";
   result.hidden = true;
-  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  const token = getSessionToken();
   try {
     const response = await fetch(`${API_BASE}/users/by-code/${form.elements["social-code"].value}`, {
       credentials: "include",

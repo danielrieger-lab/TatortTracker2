@@ -20,8 +20,17 @@ let selectedImageUrl = "";
 let cropPosition = { x: 50, y: 50 };
 let dragState = null;
 
+function getSessionToken() {
+  try { return localStorage.getItem(SESSION_TOKEN_KEY) || ""; } catch { return ""; }
+}
+
+function storeSessionToken(token) {
+  if (!token) return;
+  try { localStorage.setItem(SESSION_TOKEN_KEY, token); } catch { /* Cookie authentication remains available. */ }
+}
+
 async function uploadProfilePicture(profilePicture) {
-  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  const token = getSessionToken();
   const response = await fetch(`${API_BASE}/profile-picture`, {
     method: "PUT",
     credentials: "include",
@@ -33,10 +42,12 @@ async function uploadProfilePicture(profilePicture) {
   return data;
 }
 
-async function request(path) {
-  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+async function request(path, options = {}) {
+  const token = getSessionToken();
   const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
     credentials: "include",
+    cache: "no-store",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   const data = await response.json().catch(() => ({}));
@@ -45,7 +56,7 @@ async function request(path) {
 }
 
 document.querySelector("#profile-logout").addEventListener("click", async () => {
-  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  const token = getSessionToken();
   try {
     await fetch(`${API_BASE}/auth/logout`, {
       method: "POST",
@@ -60,7 +71,8 @@ document.querySelector("#profile-logout").addEventListener("click", async () => 
 
 async function loadProfile() {
   try {
-    const [me, ratings, episodes] = await Promise.all([request("/me"), request("/ratings"), request("/episodes")]);
+    const me = await request("/me");
+    storeSessionToken(me.token);
     if (!me.user) {
       window.location.replace("index.html");
       return;
@@ -70,6 +82,7 @@ async function loadProfile() {
     document.querySelector("#profile-rank-title").textContent = me.user.rankTitle;
       document.querySelector("#profile-friend-code").textContent = `T${me.user.friendCode}`;
     setProfilePicture(me.user.profilePicture);
+      const [ratings, episodes] = await Promise.all([request("/ratings"), request("/episodes")]);
     const totalEpisodes = await getBroadcastedEpisodeCount(episodes.episodes);
     const rated = ratings.ratings.length;
     profileData = calculateStatistics(ratings.ratings, episodes.episodes);
@@ -281,6 +294,6 @@ loadProfile();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=51", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=52", { updateViaCache: "none" }).then((registration) => registration.update());
   });
 }

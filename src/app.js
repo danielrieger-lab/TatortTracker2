@@ -23,8 +23,12 @@ const importRatingsButton = document.querySelector("#import-ratings-button");
 const importRatingsFile = document.querySelector("#import-ratings-file");
 const importRatingsStatus = document.querySelector("#import-ratings-status");
 
+function getSessionToken() {
+  try { return localStorage.getItem(SESSION_TOKEN_KEY) || ""; } catch { return ""; }
+}
+
 async function request(path, options = {}) {
-  const token = localStorage.getItem(SESSION_TOKEN_KEY);
+  const token = getSessionToken();
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
@@ -474,7 +478,7 @@ loadEpisodes();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=50", { updateViaCache: "none" }).then((registration) => registration.update());
+    navigator.serviceWorker.register("sw.js?v=52", { updateViaCache: "none" }).then((registration) => registration.update());
     navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
   });
 }

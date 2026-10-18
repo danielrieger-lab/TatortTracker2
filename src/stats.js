@@ -1,10 +1,17 @@
 const API_BASE = window.TATORT_API_URL || "https://my-worker.tatorttracker.workers.dev/api";
 const status = document.querySelector("#stats-status");
 const teamAssetBase = new URL("../assets/teams/", import.meta.url);
+const SESSION_TOKEN_KEY = "tatorttracker.session-token";
 
 async function loadStatistics() {
   try {
-    const response = await fetch(`${API_BASE}/statistics`, { credentials: "include" });
+    let token = "";
+    try { token = localStorage.getItem(SESSION_TOKEN_KEY) || ""; } catch { /* Cookie authentication remains available. */ }
+    const response = await fetch(`${API_BASE}/statistics`, {
+      credentials: "include",
+      cache: "no-store",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Statistik konnte nicht geladen werden.");
     document.querySelector("#stats-content").hidden = false;
