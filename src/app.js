@@ -213,7 +213,7 @@ function openEpisodeModal(episode) {
     }
     stars.dataset.field = field; stars.dataset.value = "0";
     const savedValue = Number(savedRating[field] || 0);
-    const selectedValue = Math.round(savedValue / 2);
+    const selectedValue = Math.max(0, Math.min(5, Math.round(savedValue)));
     stars.dataset.value = String(selectedValue);
     [...stars.children].forEach((item, index) => item.classList.toggle("filled", index < selectedValue));
     row.append(text, stars); form.append(row);
@@ -230,9 +230,7 @@ function openEpisodeModal(episode) {
     event.preventDefault(); status.textContent = "Wird gespeichert ...";
     const values = Object.fromEntries([...form.querySelectorAll(".stars")].map((stars) => [stars.dataset.field, Number(stars.dataset.value || 0)]));
     const total = [values.fallQuality, values.teamRating, values.directionRating, values.tension].reduce((sum, value) => sum + value, 0) / 4;
-    const apiValue = (value) => value ? value * 2 : 5;
-    const apiValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, apiValue(value)]));
-    const payload = { episodeId: episode.id, score: Math.round(total * 2) || 5, ...apiValues, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: episode.synopsis };
+    const payload = { episodeId: episode.id, score: Math.round(total), ...values, watchedDate: form.querySelector("#modal-watchedDate").value, watchCount: Number(form.querySelector("#modal-watchCount").value || 1), favoriteCharacter: form.querySelector("#modal-favoriteCharacter").value, leastFavoriteCharacter: form.querySelector("#modal-leastFavoriteCharacter").value, notes: episode.synopsis };
     try { const saved = await request("/ratings", { method: "POST", body: JSON.stringify(payload) }); ratingsByEpisode.set(String(episode.id), saved); renderFilteredEpisodes(); status.textContent = "Bewertung gespeichert."; if (comment.value.trim()) await request("/comments", { method: "POST", body: JSON.stringify({ episodeId: episode.id, body: comment.value.trim() }) }); } catch (error) { status.textContent = error.message; }
   });
   body.append(form);
@@ -334,7 +332,7 @@ importRatingsFile.addEventListener("change", async () => {
     for (const [oldId, legacy] of Object.entries(legacyRatings)) {
       const episode = episodesById.get(String(oldId));
       if (!episode) { skipped += 1; continue; }
-      const value = (key) => Math.max(1, Math.min(10, Math.round(Number(legacy[key] || 2.5) * 2)));
+      const value = (key) => Math.max(0, Math.min(5, Math.round(Number(legacy[key] ?? 2.5))));
       const comment = textValue(legacy, ["kommentare", "comment", "comments", "kommentar"]);
       const details = {
         episodeId: episode.id,

@@ -323,8 +323,8 @@ async function saveRating(request, env, headers) {
     leastFavoriteCharacter: cleanText(body.leastFavoriteCharacter, 120), notes: cleanText(body.notes, 1000),
   };
   const requiredRatings = [details.fallQuality, details.teamRating, details.directionRating, details.tension, details.scary, details.watchCount];
-  if (!episodeId || !Number.isInteger(score) || score < 1 || score > 10 || requiredRatings.some((value) => value === null)) {
-    return json({ error: "Episode and a score from 1 to 10 are required." }, 400, headers);
+  if (!episodeId || !Number.isInteger(score) || score < 0 || score > 5 || requiredRatings.some((value) => value === null)) {
+    return json({ error: "Episode and ratings from 0 to 5 are required." }, 400, headers);
   }
   await env.DB.prepare("INSERT INTO ratings (user_id, episode_id, score, fall_quality, team_rating, direction_rating, tension, scary, watched_date, watch_count, favorite_character, least_favorite_character, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) ON CONFLICT(user_id, episode_id) DO UPDATE SET score = excluded.score, fall_quality = excluded.fall_quality, team_rating = excluded.team_rating, direction_rating = excluded.direction_rating, tension = excluded.tension, scary = excluded.scary, watched_date = excluded.watched_date, watch_count = excluded.watch_count, favorite_character = excluded.favorite_character, least_favorite_character = excluded.least_favorite_character, notes = excluded.notes, updated_at = CURRENT_TIMESTAMP")
     .bind(user.id, episodeId, score, details.fallQuality, details.teamRating, details.directionRating, details.tension, details.scary, details.watchedDate, details.watchCount, details.favoriteCharacter, details.leastFavoriteCharacter, details.notes).run();
@@ -446,7 +446,7 @@ async function readJson(request) {
 function cleanUsername(value) { return typeof value === "string" ? value.trim() : ""; }
 function cleanPin(value) { return typeof value === "string" ? value : ""; }
 function cleanEpisodeId(value) { return typeof value === "string" && /^[a-zA-Z0-9_-]{1,80}$/.test(value) ? value : ""; }
-function cleanRating(value) { const rating = Number(value ?? 5); return Number.isInteger(rating) && rating >= 1 && rating <= 10 ? rating : null; }
+function cleanRating(value) { const rating = Number(value ?? 3); return Number.isInteger(rating) && rating >= 0 && rating <= 5 ? rating : null; }
 function cleanCount(value) { const count = Number(value ?? 1); return Number.isInteger(count) && count >= 1 && count <= 999 ? count : null; }
 function cleanDate(value) { return value === "" || value == null || (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) ? (value || null) : null; }
 function cleanText(value, max) { return value == null || value === "" ? "" : typeof value === "string" && value.length <= max ? value.trim() : null; }

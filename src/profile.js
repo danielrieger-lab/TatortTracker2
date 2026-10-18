@@ -59,7 +59,7 @@ async function loadProfile() {
 
 function calculateStatistics(ratings, episodes) {
   const episodesById = new Map(episodes.map((episode) => [String(episode.id), episode]));
-  const score = (rating, key) => Number(rating[key] || 0) / 2;
+  const score = (rating, key) => Number(rating[key] || 0);
   const caseRows = ratings.map((rating) => {
     const episode = episodesById.get(String(rating.episodeId));
     return { episode, score: ["fallQuality", "teamRating", "directionRating", "tension"].reduce((sum, key) => sum + score(rating, key), 0) / 4, scary: score(rating, "scary"), team: score(rating, "teamRating") };

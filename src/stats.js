@@ -45,7 +45,7 @@ function renderRank(id, items, key, showTeamImages = false) {
       label.textContent = name;
     }
     const score = document.createElement("strong");
-    score.textContent = `${item[key]}/10`;
+    score.textContent = `${item[key]}/5`;
     row.append(label, score);
     return row;
   }));
